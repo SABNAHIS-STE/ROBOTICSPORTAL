@@ -61,6 +61,7 @@
   --sidebar-item-hover-bg:#f5f6fa;
   --sidebar-item-hover-text:#0d0f14;
   --sidebar-item-active-bg:#fdf8ec;
+  --skel-base:rgba(13,15,20,0.07); --skel-shine:rgba(13,15,20,0.15);
 }
 
 [data-theme="dark"] {
@@ -86,6 +87,7 @@
   --sidebar-item-hover-bg:rgba(255,255,255,0.06);
   --sidebar-item-hover-text:#e8eaf2;
   --sidebar-item-active-bg:rgba(224,184,48,0.14);
+  --skel-base:rgba(255,255,255,0.06); --skel-shine:rgba(255,255,255,0.15);
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -420,6 +422,22 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
 .empty-state-text{font-size:var(--text-base);font-weight:500;}
 .empty-state-sub{font-size:var(--text-sm);margin-top:5px;}
 
+/* ══════ SKELETON LOADERS ══════ */
+@keyframes skel-shimmer{0%{background-position:-150% 0}100%{background-position:150% 0}}
+.skel{
+  display:inline-block;border-radius:6px;background-color:var(--skel-base);
+  background-image:linear-gradient(100deg,transparent 35%,var(--skel-shine) 50%,transparent 65%);
+  background-size:250% 100%;background-repeat:no-repeat;
+  animation:skel-shimmer 1.4s ease-in-out infinite;
+  vertical-align:middle;
+}
+.skel-circle{border-radius:50%;}
+.skel-line{display:block;height:0.85em;border-radius:4px;}
+.skel-on-color{
+  background-color:rgba(255,255,255,0.22);
+  background-image:linear-gradient(100deg,transparent 35%,rgba(255,255,255,0.45) 50%,transparent 65%);
+}
+
 /* ══════ MOBILE ══════ */
 .mob-header{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:var(--sidebar-bg);height:var(--mob-header-h);align-items:center;padding:0 16px;padding-top:var(--safe-top);gap:10px;border-bottom:1px solid var(--sidebar-border);}
 .mob-header-title{font-family:var(--font-display);font-size:1rem;color:var(--gold);flex:1;}
@@ -477,94 +495,92 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
 .app-shell.sidebar-collapsed .user-chip{justify-content:center;padding:8px 0;}
 
 /* ══════════════════════════════════════════
-   LOADING SCREEN
+   LOADING SCREEN — BOOT SEQUENCE
 ══════════════════════════════════════════ */
 #loadingScreen{
-  position:fixed;inset:0;z-index:2000;background:#0b1326;overflow:hidden;
+  position:fixed;inset:0;z-index:2000;background:#060e20;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
-  transition:opacity .5s ease,visibility .5s ease;
+  transition:opacity .4s ease,visibility .4s ease;
   font-family:'JetBrains Mono','Courier New',monospace;
 }
 #loadingScreen.hide{opacity:0;visibility:hidden;pointer-events:none;}
-#bootShaderCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;}
-.boot-corner-tl,.boot-corner-tr,.boot-corner-bl,.boot-corner-br{
-  position:absolute;width:80px;height:80px;z-index:5;pointer-events:none;
-  border-color:rgba(195,245,255,0.2);
-}
-.boot-corner-tl{top:40px;left:40px;border-top:1px solid;border-left:1px solid;}
-.boot-corner-tr{top:40px;right:40px;border-top:1px solid;border-right:1px solid;}
-.boot-corner-bl{bottom:40px;left:40px;border-bottom:1px solid;border-left:1px solid;}
-.boot-corner-br{bottom:40px;right:40px;border-bottom:1px solid;border-right:1px solid;}
+
+/* Neural mesh canvas behind everything */
+#bootCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;}
+
+/* Atmospheric overlays */
+.boot-atmo{position:absolute;inset:0;background:radial-gradient(ellipse at bottom left,rgba(6,14,32,0.8),transparent 60%),radial-gradient(ellipse at top right,rgba(0,229,255,0.04),transparent 50%);pointer-events:none;z-index:1;}
+
+/* Scanning line */
 .boot-scanline{
-  position:absolute;left:0;top:0;width:100%;height:2px;z-index:5;pointer-events:none;
-  background:linear-gradient(to right,transparent,#00daf3,transparent);
-  opacity:0.5;animation:bootScanAnim 4s linear infinite;
+  position:absolute;left:0;top:-2px;width:100%;height:2px;pointer-events:none;z-index:5;
+  background:linear-gradient(90deg,transparent,#00e5ff,transparent);
+  opacity:.15;animation:bootScan 6s linear infinite;
 }
-@keyframes bootScanAnim{0%{top:0%}100%{top:100%}}
-.boot-hud-tl{position:absolute;top:12px;left:12px;z-index:10;}
-.boot-hud-br{position:absolute;bottom:12px;right:12px;z-index:10;}
-.boot-hud-chip{
-  background:rgba(23,31,51,0.4);backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,0.1);
-  box-shadow:inset 0 0 20px rgba(0,218,243,0.05);
-  padding:6px 10px;border-radius:4px;display:flex;flex-direction:column;gap:2px;
-}
-.boot-hud-label{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#849396;}
-.boot-hud-val{font-size:10px;letter-spacing:0.05em;color:#00daf3;}
-.boot-hud-val.green{color:#00e290;}
-.boot-stage{
-  position:relative;z-index:10;width:100%;max-width:420px;
-  padding:0 20px;display:flex;flex-direction:column;align-items:center;gap:20px;
-}
+@keyframes bootScan{0%{top:0%}100%{top:100%}}
+
+/* Corner accents */
+.boot-corner{position:absolute;width:48px;height:48px;border-color:rgba(0,229,255,0.35);pointer-events:none;z-index:5;}
+.boot-corner.tl{top:12px;left:12px;border-top:2px solid;border-left:2px solid;border-radius:6px 0 0 0;}
+.boot-corner.tr{top:12px;right:12px;border-top:2px solid;border-right:2px solid;border-radius:0 6px 0 0;}
+.boot-corner.bl{bottom:12px;left:12px;border-bottom:2px solid;border-left:2px solid;border-radius:0 0 0 6px;}
+.boot-corner.br{bottom:12px;right:12px;border-bottom:2px solid;border-right:2px solid;border-radius:0 0 6px 0;}
+
+/* Stage */
+.boot-stage{position:relative;z-index:10;width:100%;max-width:400px;padding:0 24px;display:flex;flex-direction:column;align-items:center;gap:20px;}
+
+/* Brand */
 .boot-brand{text-align:center;}
-.boot-brand-icon-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:6px;}
-.boot-neuro-icon{font-size:2.4rem;line-height:1;filter:drop-shadow(0 0 10px rgba(0,218,243,0.6));}
-.boot-neuro-title{
-  font-size:1.9rem;font-weight:700;letter-spacing:0.15em;color:#c3f5ff;
-  filter:drop-shadow(0 0 12px rgba(0,218,243,0.5));
-  animation:neuroGlitch 3s infinite;
+.boot-title{
+  font-size:1.8rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#c3f5ff;
+  animation:bootGlitch 3s infinite;
+  filter:drop-shadow(0 0 12px rgba(0,229,255,0.5));
 }
-@keyframes neuroGlitch{0%{transform:translate(0)}2%{transform:translate(-2px,1px)}4%{transform:translate(2px,-1px)}6%{transform:translate(0)}100%{transform:translate(0)}}
-.boot-brand-sub{font-size:9px;letter-spacing:0.4em;color:rgba(186,201,204,0.55);text-transform:uppercase;margin-top:4px;}
-.boot-glass-card{
-  width:100%;background:rgba(23,31,51,0.4);backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:18px;
-  position:relative;overflow:hidden;box-shadow:0 -1px 20px rgba(0,218,243,0.1);
+.boot-title span{display:block;font-size:0.65rem;color:rgba(195,245,255,0.5);letter-spacing:0.4em;margin-top:5px;font-weight:400;}
+@keyframes bootGlitch{0%{transform:translate(0)}2%{transform:translate(-2px,1px)}4%{transform:translate(2px,-1px)}6%{transform:translate(0)}100%{transform:translate(0)}}
+.boot-status-pill{display:inline-flex;align-items:center;gap:7px;margin-top:10px;font-size:0.6rem;letter-spacing:0.12em;color:rgba(195,245,255,0.45);text-transform:uppercase;}
+.boot-dot{width:6px;height:6px;border-radius:50%;background:#00ffa3;animation:bootPulseRing 1.6s ease-out infinite;box-shadow:0 0 8px #00ffa3;}
+@keyframes bootPulseRing{0%{box-shadow:0 0 0 0 rgba(0,255,163,0.5)}70%{box-shadow:0 0 0 8px rgba(0,255,163,0)}100%{box-shadow:0 0 0 0 rgba(0,255,163,0)}}
+
+/* Ring */
+.boot-ring-wrap{position:relative;width:160px;height:160px;display:flex;align-items:center;justify-content:center;}
+.boot-ring-svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);filter:drop-shadow(0 0 14px rgba(0,229,255,0.55));}
+.boot-ring-bg{color:rgba(0,229,255,0.1);}
+.boot-ring-progress{color:#00e5ff;transition:stroke-dashoffset .1s linear;}
+.boot-ring-notch{color:rgba(0,229,255,0.18);}
+.boot-pct-wrap{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;}
+.boot-pct{font-size:1.5rem;font-weight:700;color:#c3f5ff;letter-spacing:0.02em;filter:drop-shadow(0 0 10px rgba(0,229,255,0.6));}
+.boot-pct-label{font-size:0.55rem;color:rgba(195,245,255,0.3);letter-spacing:0.25em;text-transform:uppercase;margin-top:3px;}
+
+/* Panel */
+.boot-panel{
+  width:100%;background:rgba(11,19,38,0.6);border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;padding:14px 16px;backdrop-filter:blur(16px);
 }
-.boot-card-header{
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);
-}
-.boot-status-row{display:flex;align-items:center;gap:7px;}
-.boot-status-dot{width:8px;height:8px;border-radius:50%;background:#00e290;animation:bootPulse 1.6s ease-out infinite;}
-@keyframes bootPulse{0%{box-shadow:0 0 0 0 rgba(0,226,144,0.5)}70%{box-shadow:0 0 0 8px rgba(0,226,144,0)}100%{box-shadow:0 0 0 0 rgba(0,226,144,0)}}
-.boot-status-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#00e290;}
-.boot-sys-id{font-size:11px;letter-spacing:0.05em;color:#bac9cc;}
-.boot-progress-track{width:100%;height:4px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden;margin-bottom:10px;}
-.boot-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#006875,#00daf3);transition:width .25s ease;box-shadow:0 0 8px #00daf3;}
-.boot-feed{height:68px;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;overflow:hidden;}
-.boot-feed-line{font-size:11px;letter-spacing:0.04em;color:rgba(186,201,204,0.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.boot-feed-line.done{color:#00e290;font-weight:700;text-shadow:0 0 8px rgba(0,226,144,0.35);}
-.boot-pct-row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px;}
-.boot-pct-num{font-size:2rem;font-weight:700;color:#c3f5ff;letter-spacing:0.02em;filter:drop-shadow(0 0 10px rgba(0,218,243,0.6));}
-.boot-pct-label{font-size:9px;color:rgba(186,201,204,0.35);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px;}
-.boot-footer-strip{
-  margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05);
-  display:flex;justify-content:space-between;align-items:center;
-}
-.boot-footer-item{display:flex;flex-direction:column;gap:2px;}
-.boot-footer-item:last-child{align-items:flex-end;}
-.boot-footer-flabel{font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(186,201,204,0.28);}
-.boot-footer-fval{font-size:11px;color:#dae2fd;}
-.boot-footer-fval.secure{color:#00e290;}
-.boot-atm-note{text-align:center;font-size:10px;color:rgba(186,201,204,0.28);max-width:280px;margin:0 auto;line-height:1.5;}
+.boot-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.boot-panel-head-label{display:flex;align-items:center;gap:6px;font-size:0.6rem;letter-spacing:0.1em;color:#c3f5ff;text-transform:uppercase;}
+.boot-progress-track{width:90px;height:4px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden;flex-shrink:0;}
+.boot-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#006875,#00e5ff);transition:width .25s ease;box-shadow:0 0 8px #00e5ff;}
+.boot-feed{height:80px;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;overflow:hidden;}
+.boot-feed-line{font-size:0.65rem;color:rgba(195,245,255,0.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:sUp .3s ease;}
+.boot-feed-line.done{color:#00e290;font-weight:700;text-shadow:0 0 10px rgba(0,226,144,0.35);}
+
+/* Footer */
+.boot-footer{display:grid;grid-template-columns:1fr 1fr 1fr;width:100%;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);}
+.boot-footer div{display:flex;flex-direction:column;gap:2px;}
+.boot-footer div:nth-child(2){align-items:center;}
+.boot-footer div:nth-child(3){align-items:flex-end;}
+.boot-footer-label{font-size:0.5rem;color:rgba(195,245,255,0.3);letter-spacing:0.14em;text-transform:uppercase;}
+.boot-footer-val{font-size:0.68rem;color:#dae2fd;}
+.boot-footer-val.secure{color:#00e290;}
+@media(max-width:380px){.boot-ring-wrap{width:130px;height:130px;}.boot-title{font-size:1.45rem;}}
 
 /* ══════════════════════════════════════════
    AUTH PAGE — NEURO_CORE TERMINAL STYLE
 ══════════════════════════════════════════ */
 #authPage{
-  --gold:#ff8a1f; --gold-light:#ffb066; --gold-bg:#2a1404;
-  --robot:#ff5e00;
+  --gold:#00e5ff; --gold-light:#8ff3ff; --gold-bg:#06222c;
+  --robot:#0077a3;
   position:fixed;inset:0;z-index:500;overflow-y:auto;
   background:#0d0f14;
   font-family:var(--font-body);
@@ -576,15 +592,15 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
   animation:authscan 4s linear infinite;opacity:0.5;
 }
 @keyframes authscan{0%{top:0%}100%{top:100%}}
-.glow-button{box-shadow:0 0 15px rgba(255,138,31,0.35);transition:all .3s ease;}
-.glow-button:hover{box-shadow:0 0 25px rgba(255,138,31,0.6);transform:translateY(-1px);}
+.glow-button{box-shadow:0 0 15px rgba(0,229,255,0.35);transition:all .3s ease;}
+.glow-button:hover{box-shadow:0 0 25px rgba(0,229,255,0.6);transform:translateY(-1px);}
 .glow-button:active{transform:scale(0.97);}
 .auth-shell{width:100%;max-width:420px;}
 .auth-brand-icon{
   width:58px;height:58px;border-radius:16px;margin:0 auto 14px;
   background:linear-gradient(135deg,var(--robot),var(--gold));
   display:flex;align-items:center;justify-content:center;font-size:1.7rem;
-  box-shadow:0 6px 24px rgba(255,138,31,0.4);
+  box-shadow:0 6px 24px rgba(0,229,255,0.4);
 }
 .auth-brand h1{font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:#fff;}
 .auth-brand h1 span{display:block;font-size:0.7rem;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--gold-light);margin-top:4px;}
@@ -604,7 +620,7 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
   background:rgba(255,255,255,0.04);color:rgba(232,234,242,0.55);text-align:center;cursor:pointer;
   font-size:var(--text-sm);font-weight:600;transition:all var(--transition);
 }
-.role-pill.active{border-color:var(--gold);background:rgba(255,138,31,0.16);color:var(--gold-light);}
+.role-pill.active{border-color:var(--gold);background:rgba(0,229,255,0.16);color:var(--gold-light);}
 .auth-submit{width:100%;height:48px;border:none;border-radius:6px;background:linear-gradient(135deg,var(--robot),var(--gold));color:#fff;font-family:var(--font-mono);font-size:0.8rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border-top:1px solid rgba(255,255,255,0.2);}
 .auth-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
 .auth-forgot{width:100%;text-align:center;background:none;border:none;color:rgba(232,234,242,0.45);font-size:0.78rem;cursor:pointer;padding:6px;margin-top:2px;}
@@ -641,6 +657,18 @@ table.dtbl tbody tr:hover{background:var(--surface);}
 .filter-pill.active{background:var(--ink);color:#fff;border-color:var(--ink);}
 .search-input{flex:1;min-width:180px;display:flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:9px 13px;}
 .search-input input{flex:1;border:none;outline:none;background:none;font-family:var(--font-body);font-size:var(--text-sm);color:var(--ink);}
+
+/* ══════════════════════════════════════════
+   BULK ACTION BAR (teacher QOL)
+══════════════════════════════════════════ */
+.bulk-bar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--gold-bg);border:1.5px solid var(--gold);border-radius:var(--radius);
+  padding:10px 14px;margin-bottom:14px;animation:sUp .18s ease;
+}
+.bulk-bar-count{font-size:var(--text-sm);font-weight:700;color:var(--ink);margin-right:auto;}
+.row-chk{width:16px;height:16px;cursor:pointer;accent-color:var(--gold);}
+th.chk-col,td.chk-col{width:34px;}
 
 /* ══════════════════════════════════════════
    ACCOUNT DROPDOWN
@@ -877,6 +905,55 @@ table.dtbl tbody tr:hover{background:var(--surface);}
   display:flex;align-items:center;gap:10px;
 }
 .milestone-pop.hide{opacity:0;transform:translateX(-50%) translateY(-30px);transition:all .4s ease;}
+
+/* ══════════════════════════════════════════
+   CODE LESSONS
+══════════════════════════════════════════ */
+.lessons-layout{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start;}
+@media(max-width:768px){.lessons-layout{grid-template-columns:1fr;}}
+.lessons-sidebar{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden;position:sticky;top:20px;}
+.lessons-sidebar-head{padding:14px 16px;border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:var(--text-sm);font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.lesson-nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border:none;background:none;width:100%;text-align:left;border-left:3px solid transparent;transition:all var(--transition);}
+.lesson-nav-item:hover{background:var(--surface);}
+.lesson-nav-item.active{background:var(--gold-bg);border-left-color:var(--gold);}
+.lesson-nav-item.active .lni-title{color:var(--gold);font-weight:700;}
+.lesson-nav-item.done .lni-check{color:var(--green);}
+.lni-num{font-family:var(--font-mono);font-size:0.68rem;font-weight:700;color:var(--muted);width:20px;flex-shrink:0;}
+.lni-title{font-size:0.78rem;font-weight:500;color:var(--ink);flex:1;line-height:1.3;}
+.lni-check{font-size:0.8rem;color:var(--border);flex-shrink:0;}
+.lesson-badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:99px;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px;}
+.lesson-badge.beginner{background:var(--green-light);color:var(--green);}
+.lesson-badge.intermediate{background:var(--blue-light);color:var(--blue);}
+.lesson-badge.advanced{background:var(--robot-light);color:var(--robot);}
+.lesson-badge.capstone{background:var(--gold-bg);color:var(--gold);}
+.lesson-badge.bonus{background:#f3e8ff;color:#7c3aed;}
+.lesson-content{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px 32px;}
+@media(max-width:600px){.lesson-content{padding:18px 16px;}}
+.lesson-title{font-family:var(--font-display);font-size:1.5rem;font-weight:800;color:var(--ink);margin-bottom:6px;line-height:1.2;}
+.lesson-objective{display:flex;align-items:flex-start;gap:10px;background:var(--gold-bg);border:1px solid rgba(201,162,39,0.25);border-radius:var(--radius);padding:12px 14px;margin:14px 0 20px;font-size:var(--text-sm);color:var(--ink);}
+.lesson-objective strong{color:var(--gold);white-space:nowrap;}
+.lesson-part{margin-bottom:24px;}
+.lesson-part-title{font-family:var(--font-display);font-size:var(--text-base);font-weight:700;color:var(--ink);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.lesson-part-title::before{content:'';display:inline-block;width:4px;height:18px;background:var(--gold);border-radius:2px;flex-shrink:0;}
+.lesson-part p{font-size:var(--text-sm);color:var(--ink-3);line-height:1.7;margin-bottom:8px;}
+.lesson-part ul{padding-left:18px;display:flex;flex-direction:column;gap:5px;}
+.lesson-part ul li{font-size:var(--text-sm);color:var(--ink-3);line-height:1.6;}
+.lesson-part ul li code,.lesson-part p code{font-family:var(--font-mono);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:0.82em;color:var(--robot);}
+.code-block{background:#0d1117;border-radius:var(--radius);padding:16px 18px;margin:12px 0;position:relative;overflow-x:auto;}
+.code-block pre{margin:0;font-family:var(--font-mono);font-size:0.82rem;color:#e6edf3;line-height:1.6;white-space:pre;}
+.code-block-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#8b949e;margin-bottom:8px;}
+.code-copy-btn{position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#8b949e;border-radius:6px;padding:3px 9px;font-size:0.7rem;cursor:pointer;transition:all .2s;}
+.code-copy-btn:hover{background:rgba(255,255,255,0.15);color:#e6edf3;}
+.try-it-box{background:var(--green-light);border:1px solid var(--green);border-radius:var(--radius);padding:12px 14px;margin-top:16px;font-size:var(--text-sm);color:var(--ink);display:flex;gap:10px;align-items:flex-start;}
+.lesson-nav-btns{display:flex;gap:10px;justify-content:space-between;margin-top:28px;padding-top:20px;border-top:1px solid var(--border);}
+.lesson-progress-bar{height:4px;background:var(--border);border-radius:99px;margin-bottom:20px;overflow:hidden;}
+.lesson-progress-fill{height:100%;background:linear-gradient(90deg,var(--robot),var(--gold));border-radius:99px;transition:width .4s var(--spring);}
+.tlesson-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-xl);padding:16px 18px;display:flex;gap:14px;align-items:flex-start;transition:all var(--transition);}
+.tlesson-card:hover{border-color:var(--gold);box-shadow:var(--shadow-lg);}
+.tlesson-icon{width:42px;height:42px;border-radius:10px;background:var(--gold-bg);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.tlesson-info{flex:1;min-width:0;}
+.tlesson-title{font-weight:700;font-size:var(--text-sm);color:var(--ink);margin-bottom:3px;}
+.tlesson-meta{font-size:0.72rem;color:var(--muted);}
 </style>
 </head>
 <body data-theme="light">
@@ -892,191 +969,44 @@ table.dtbl tbody tr:hover{background:var(--surface);}
   </div>
 </div>
 
-<!-- ═══ LOADING SCREEN ═══ -->
+<!-- ═══ LOADING SCREEN — BOOT SEQUENCE ═══ -->
 <div id="loadingScreen">
-  <!-- WebGL Shader Background -->
-  <canvas id="bootShaderCanvas"></canvas>
-
-  <!-- Corner accents -->
-  <div class="boot-corner-tl"></div>
-  <div class="boot-corner-tr"></div>
-  <div class="boot-corner-bl"></div>
-  <div class="boot-corner-br"></div>
-
-  <!-- Scanline -->
+  <canvas id="bootCanvas"></canvas>
+  <div class="boot-atmo"></div>
   <div class="boot-scanline"></div>
-
-  <!-- HUD chips -->
-  <div class="boot-hud-tl">
-    <div class="boot-hud-chip">
-      <span class="boot-hud-label">COORDS</span>
-      <span class="boot-hud-val" id="bootCoords">0.00 / 0.00</span>
-    </div>
-  </div>
-  <div class="boot-hud-br">
-    <div class="boot-hud-chip" style="align-items:flex-end;">
-      <span class="boot-hud-label">LATENCY</span>
-      <span class="boot-hud-val green" id="bootLatency">12ms ▲</span>
-    </div>
-  </div>
-
-  <!-- Main card -->
+  <div class="boot-corner tl"></div>
+  <div class="boot-corner tr"></div>
+  <div class="boot-corner bl"></div>
+  <div class="boot-corner br"></div>
   <div class="boot-stage">
-    <!-- Brand -->
     <div class="boot-brand">
-      <div class="boot-brand-icon-row">
-        <span class="boot-neuro-icon">⚙️</span>
-        <span class="boot-neuro-title">SABNAHIS</span>
-      </div>
-      <div class="boot-brand-sub">Robotics Portal Access System</div>
+      <h1 class="boot-title">SABNAHIS<span>Robotics Portal</span></h1>
+      <div class="boot-status-pill"><span class="boot-dot"></span>KERNEL_VER_4.9.0_STABLE</div>
     </div>
-
-    <!-- Glass card with progress -->
-    <div class="boot-glass-card">
-      <div class="boot-card-header">
-        <div class="boot-status-row">
-          <div class="boot-status-dot"></div>
-          <span class="boot-status-label">System Online</span>
-        </div>
-        <span class="boot-sys-id">L-SEC_ENTRY_V4.2</span>
+    <div class="boot-ring-wrap">
+      <svg class="boot-ring-svg" viewBox="0 0 100 100">
+        <circle class="boot-ring-bg" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-width="0.5"/>
+        <circle class="boot-ring-progress" cx="50" cy="50" fill="none" id="bootRingCircle" r="45" stroke="currentColor" stroke-dasharray="282.7" stroke-dashoffset="282.7" stroke-linecap="round" stroke-width="2"/>
+        <circle class="boot-ring-notch" cx="50" cy="50" fill="none" r="48" stroke="currentColor" stroke-dasharray="2 6" stroke-width="1"/>
+      </svg>
+      <div class="boot-pct-wrap">
+        <span class="boot-pct" id="bootPct">0%</span>
+        <span class="boot-pct-label">Sync</span>
       </div>
-
-      <div class="boot-progress-track">
-        <div class="boot-progress-fill" id="bootProgressFill"></div>
+    </div>
+    <div class="boot-panel">
+      <div class="boot-panel-head">
+        <div class="boot-panel-head-label">⬡ System Boot</div>
+        <div class="boot-progress-track"><div class="boot-progress-fill" id="bootProgressFill"></div></div>
       </div>
-
       <div class="boot-feed" id="bootFeed"></div>
-
-      <div class="boot-pct-row">
-        <div>
-          <div class="boot-pct-label">Initializing</div>
-          <div class="boot-pct-num" id="bootPct">0%</div>
-        </div>
-      </div>
-
-      <div class="boot-footer-strip">
-        <div class="boot-footer-item">
-          <span class="boot-footer-flabel">Portal</span>
-          <span class="boot-footer-fval">SABNAHIS</span>
-        </div>
-        <div class="boot-footer-item">
-          <span class="boot-footer-flabel">Status</span>
-          <span class="boot-footer-fval secure">● Secure</span>
-        </div>
-        <div class="boot-footer-item">
-          <span class="boot-footer-flabel">Node</span>
-          <span class="boot-footer-fval">Core-07</span>
-        </div>
-      </div>
     </div>
-
-    <p class="boot-atm-note">Authorized Personnel Only. Access attempts are logged and monitored.</p>
+    <div class="boot-footer">
+      <div><span class="boot-footer-label">Latency</span><span class="boot-footer-val" id="bootLatencyVal">—</span></div>
+      <div><span class="boot-footer-label">Node</span><span class="boot-footer-val">PX-092</span></div>
+      <div><span class="boot-footer-label">Security</span><span class="boot-footer-val secure">Encrypted</span></div>
+    </div>
   </div>
-
-  <script>
-  (function(){
-    // ── WebGL Shader ──
-    const canvas = document.getElementById('bootShaderCanvas');
-    function syncSize(){ canvas.width = canvas.clientWidth||window.innerWidth; canvas.height = canvas.clientHeight||window.innerHeight; }
-    if(typeof ResizeObserver!=='undefined') new ResizeObserver(syncSize).observe(canvas);
-    syncSize();
-    const gl = canvas.getContext('webgl')||canvas.getContext('experimental-webgl');
-    if(gl){
-      const vs=`attribute vec2 a_position;varying vec2 v_texCoord;void main(){v_texCoord=a_position*.5+.5;gl_Position=vec4(a_position,0.,1.);}`;
-      const fs=`precision highp float;
-uniform float u_time;uniform vec2 u_resolution;uniform vec2 u_mouse;varying vec2 v_texCoord;
-vec3 permute(vec3 x){return mod(((x*34.)+1.)*x,289.);}
-float snoise(vec2 v){const vec4 C=vec4(.211324865405187,.366025403784439,-.577350269189626,.024390243902439);vec2 i=floor(v+dot(v,C.yy));vec2 x0=v-i+dot(i,C.xx);vec2 i1;i1=(x0.x>x0.y)?vec2(1.,0.):vec2(0.,1.);vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;i=mod(i,289.);vec3 p=permute(permute(i.y+vec3(0.,i1.y,1.))+i.x+vec3(0.,i1.x,1.));vec3 m=max(.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.);m=m*m;m=m*m;vec3 x=2.*fract(p*C.www)-1.;vec3 h=abs(x)-.5;vec3 a0=x-floor(x+.5);vec3 g=a0*vec3(x0.x,x12.xz)+h*vec3(x0.y,x12.yw);vec3 l=1.79284291400159-.85373472095314*(g*g+h*h);vec3 r=g*vec3(l.x,l.y,l.z);return 130.*dot(m,r);}
-void main(){
-  vec2 uv=v_texCoord;vec2 mouse=u_mouse/u_resolution;
-  float s=0.;
-  s+=snoise(uv*3.+u_time*.2)*.5;
-  s+=snoise(uv*5.-u_time*.3)*.25;
-  float dist=distance(uv,mouse);
-  float mi=smoothstep(.4,0.,dist);
-  s+=mi*.4*sin(u_time*2.);
-  float blobs=smoothstep(.2,.25,s);
-  vec3 cA=vec3(.043,.075,.149);
-  vec3 cB=vec3(0.,.898,1.);
-  vec3 cC=vec3(.192,.224,.302);
-  vec3 col=mix(cA,cC,uv.y);
-  col=mix(col,cB*.6,blobs*(.5+.5*sin(u_time*.5)));
-  col+=cB*mi*.15;
-  gl_FragColor=vec4(col,1.);
-}`;
-      function cs(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;}
-      const prog=gl.createProgram();
-      gl.attachShader(prog,cs(gl.VERTEX_SHADER,vs));
-      gl.attachShader(prog,cs(gl.FRAGMENT_SHADER,fs));
-      gl.linkProgram(prog);gl.useProgram(prog);
-      const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-      const pos=gl.getAttribLocation(prog,'a_position');
-      gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
-      const uTime=gl.getUniformLocation(prog,'u_time');
-      const uRes=gl.getUniformLocation(prog,'u_resolution');
-      const uMouse=gl.getUniformLocation(prog,'u_mouse');
-      let mx=canvas.width/2,my=canvas.height/2;
-      window.addEventListener('mousemove',e=>{
-        const r=canvas.getBoundingClientRect();
-        mx=((e.clientX-r.left)/r.width)*canvas.width;
-        my=(1-(e.clientY-r.top)/r.height)*canvas.height;
-        const cx=(e.clientX/window.innerWidth*100).toFixed(2);
-        const cy=(e.clientY/window.innerHeight*100).toFixed(2);
-        const el=document.getElementById('bootCoords');
-        if(el) el.textContent=cx+' / '+cy;
-      });
-      function render(t){
-        syncSize();gl.viewport(0,0,canvas.width,canvas.height);
-        if(uTime)gl.uniform1f(uTime,t*.001);
-        if(uRes)gl.uniform2f(uRes,canvas.width,canvas.height);
-        if(uMouse)gl.uniform2f(uMouse,mx,my);
-        gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-        if(!document.getElementById('loadingScreen').classList.contains('hide'))
-          requestAnimationFrame(render);
-      }
-      requestAnimationFrame(render);
-    }
-
-    // ── Boot sequence feed ──
-    const STEPS=[
-      'Verifying portal credentials…',
-      'Loading security protocols…',
-      'Connecting to Firebase core…',
-      'Syncing user registry…',
-      'Initializing student modules…',
-      'Calibrating activity engine…',
-      'Portal ready.',
-    ];
-    const feed=document.getElementById('bootFeed');
-    const fill=document.getElementById('bootProgressFill');
-    const pct=document.getElementById('bootPct');
-    let step=0;
-    function addLine(txt,done){
-      const el=document.createElement('div');
-      el.className='boot-feed-line'+(done?' done':'');
-      el.textContent=(done?'✓ ':'> ')+txt;
-      feed.appendChild(el);
-      while(feed.children.length>4) feed.removeChild(feed.firstChild);
-    }
-    function tick(){
-      if(step>=STEPS.length) return;
-      addLine(STEPS[step], step===STEPS.length-1);
-      const p=Math.round(((step+1)/STEPS.length)*100);
-      fill.style.width=p+'%';
-      pct.textContent=p+'%';
-      step++;
-      if(step<STEPS.length) setTimeout(tick, 380+Math.random()*200);
-    }
-    setTimeout(tick,300);
-
-    // ── Latency jitter ──
-    setInterval(()=>{
-      const el=document.getElementById('bootLatency');
-      if(el) el.textContent=(8+Math.floor(Math.random()*12))+'ms ▲';
-    },1200);
-  })();
-  </script>
 </div>
 
 <!-- ═══ AUTH PAGE (LOGIN / REGISTER) — NEURO_CORE STYLE ═══ -->
@@ -1091,10 +1021,10 @@ void main(){
 
   <!-- Corner Guideline Overlay -->
   <div style="position:fixed;inset:0;pointer-events:none;z-index:1;">
-    <div style="position:absolute;top:40px;left:40px;width:80px;height:80px;border-top:1px solid rgba(255,138,31,0.25);border-left:1px solid rgba(255,138,31,0.25);"></div>
-    <div style="position:absolute;top:40px;right:40px;width:80px;height:80px;border-top:1px solid rgba(255,138,31,0.25);border-right:1px solid rgba(255,138,31,0.25);"></div>
-    <div style="position:absolute;bottom:40px;left:40px;width:80px;height:80px;border-bottom:1px solid rgba(255,138,31,0.25);border-left:1px solid rgba(255,138,31,0.25);"></div>
-    <div style="position:absolute;bottom:40px;right:40px;width:80px;height:80px;border-bottom:1px solid rgba(255,138,31,0.25);border-right:1px solid rgba(255,138,31,0.25);"></div>
+    <div style="position:absolute;top:40px;left:40px;width:80px;height:80px;border-top:1px solid rgba(0,229,255,0.25);border-left:1px solid rgba(0,229,255,0.25);"></div>
+    <div style="position:absolute;top:40px;right:40px;width:80px;height:80px;border-top:1px solid rgba(0,229,255,0.25);border-right:1px solid rgba(0,229,255,0.25);"></div>
+    <div style="position:absolute;bottom:40px;left:40px;width:80px;height:80px;border-bottom:1px solid rgba(0,229,255,0.25);border-left:1px solid rgba(0,229,255,0.25);"></div>
+    <div style="position:absolute;bottom:40px;right:40px;width:80px;height:80px;border-bottom:1px solid rgba(0,229,255,0.25);border-right:1px solid rgba(0,229,255,0.25);"></div>
   </div>
 
   <!-- Login Shell -->
@@ -1212,7 +1142,7 @@ void main(){
   background:rgba(23,26,38,0.55);
   backdrop-filter:blur(16px);
   border:1px solid rgba(255,255,255,0.1);
-  box-shadow:inset 0 0 20px rgba(255,138,31,0.06),0 -1px 20px rgba(255,138,31,0.1);
+  box-shadow:inset 0 0 20px rgba(0,229,255,0.06),0 -1px 20px rgba(0,229,255,0.1);
   padding:26px 24px;
 }
 .terminal-field{
@@ -1221,7 +1151,7 @@ void main(){
   transition:border-color .25s,box-shadow .25s;
 }
 .terminal-field::placeholder{color:rgba(232,234,242,0.28);}
-.terminal-field:focus{outline:none;border-color:var(--gold);box-shadow:0 0 10px rgba(255,138,31,0.25);}
+.terminal-field:focus{outline:none;border-color:var(--gold);box-shadow:0 0 10px rgba(0,229,255,0.25);}
 .terminal-field option{background:#171a26;color:#fff;}
 @media(max-width:768px){
   #authLatencyHud{display:none;}
@@ -1267,8 +1197,8 @@ void main(){
   strength+=mouseInfluence*0.4*sin(u_time*2.0);
   float blobs=smoothstep(0.2,0.25,strength);
   vec3 colorA=vec3(0.051,0.059,0.078);
-  vec3 colorB=vec3(1.0,0.541,0.122);
-  vec3 colorC=vec3(0.18,0.08,0.02);
+  vec3 colorB=vec3(0.0,0.898,1.0);
+  vec3 colorC=vec3(0.02,0.06,0.13);
   vec3 finalColor=mix(colorA,colorC,uv.y);
   finalColor=mix(finalColor,colorB*0.6,blobs*(0.5+0.5*sin(u_time*0.5)));
   finalColor+=colorB*mouseInfluence*0.15;
@@ -1318,7 +1248,6 @@ void main(){
 })();
 </script>
 
-
 <div class="app-shell hidden" id="app">
 
   <!-- ═══ SIDEBAR ═══ -->
@@ -1345,7 +1274,7 @@ void main(){
         <button class="nav-item" data-page="activity" onclick="goTo('activity')">
           <span class="nav-icon">⚡</span>
           <span class="nav-item-label">Activity Area</span>
-          <span class="nav-badge">1 Live</span>
+          <span class="nav-badge hidden" id="navActivityLiveBadge">0 Live</span>
         </button>
 
         <span class="nav-label" style="margin-top:6px;">Resources</span>
@@ -1356,6 +1285,10 @@ void main(){
         <button class="nav-item" data-page="leaderboard" onclick="goTo('leaderboard')">
           <span class="nav-icon">🏆</span>
           <span class="nav-item-label">Leaderboard</span>
+        </button>
+        <button class="nav-item" data-page="code-lessons" onclick="goTo('code-lessons')">
+          <span class="nav-icon">💻</span>
+          <span class="nav-item-label">Code Lessons</span>
         </button>
       </div>
 
@@ -1370,28 +1303,9 @@ void main(){
           <span class="nav-icon">🧑‍🎓</span>
           <span class="nav-item-label">My Students</span>
         </button>
-        <button class="nav-item" data-page="manage-content" onclick="goTo('manage-content')">
-          <span class="nav-icon">🧩</span>
-          <span class="nav-item-label">Manage Content</span>
-        </button>
-
-        <span class="nav-label" style="margin-top:6px;">Resources</span>
-        <button class="nav-item" data-page="leaderboard" onclick="goTo('leaderboard')">
-          <span class="nav-icon">🏆</span>
-          <span class="nav-item-label">Leaderboard</span>
-        </button>
-      </div>
-
-      <!-- TEACHER NAV -->
-      <div id="navTeacher" class="hidden">
-        <span class="nav-label">Teacher</span>
-        <button class="nav-item active" data-page="teacher-dashboard" onclick="goTo('teacher-dashboard')">
-          <span class="nav-icon">🏠</span>
-          <span class="nav-item-label">Dashboard</span>
-        </button>
         <button class="nav-item" data-page="teacher-users" onclick="goTo('teacher-users')">
           <span class="nav-icon">👥</span>
-          <span class="nav-item-label">Users</span>
+          <span class="nav-item-label">Manage Users</span>
           <span class="nav-badge hidden" id="teacherPendingBadge">0</span>
         </button>
         <button class="nav-item" data-page="manage-content" onclick="goTo('manage-content')">
@@ -1403,6 +1317,10 @@ void main(){
         <button class="nav-item" data-page="leaderboard" onclick="goTo('leaderboard')">
           <span class="nav-icon">🏆</span>
           <span class="nav-item-label">Leaderboard</span>
+        </button>
+        <button class="nav-item" data-page="code-lessons" onclick="goTo('code-lessons')">
+          <span class="nav-icon">💻</span>
+          <span class="nav-item-label">Code Lessons</span>
         </button>
       </div>
     </nav>
@@ -1501,27 +1419,27 @@ void main(){
       <div class="stat-grid">
         <div class="stat-card fun-score">
           <div class="stat-icon">⚡</div>
-          <div class="stat-val" id="statOverallScore">—<span style="font-size:1rem;opacity:0.7">%</span></div>
+          <div class="stat-val" id="statOverallScore"><span class="skel skel-on-color" style="width:50px;height:1.5rem;"></span></div>
           <div class="stat-label">Overall Score</div>
-          <span class="stat-change" id="statScoreChange">—</span>
+          <span class="stat-change" id="statScoreChange"><span class="skel skel-on-color" style="width:64px;height:0.65em;border-radius:4px;"></span></span>
         </div>
         <div class="stat-card fun-quiz">
           <div class="stat-icon">🏅</div>
-          <div class="stat-val" id="statQuizzesDone">—</div>
+          <div class="stat-val" id="statQuizzesDone"><span class="skel skel-on-color" style="width:30px;height:1.5rem;"></span></div>
           <div class="stat-label">Quizzes Done</div>
-          <span class="stat-change" id="statQuizzesChange">—</span>
+          <span class="stat-change" id="statQuizzesChange"><span class="skel skel-on-color" style="width:58px;height:0.65em;border-radius:4px;"></span></span>
         </div>
         <div class="stat-card fun-streak">
           <div class="stat-icon">🔥</div>
-          <div class="stat-val" id="statStreak">—</div>
+          <div class="stat-val" id="statStreak"><span class="skel skel-on-color" style="width:30px;height:1.5rem;"></span></div>
           <div class="stat-label">Day Streak</div>
           <span class="stat-change">Keep going!</span>
         </div>
         <div class="stat-card fun-modules">
           <div class="stat-icon">🤖</div>
-          <div class="stat-val" id="statModulesDone">—</div>
+          <div class="stat-val" id="statModulesDone"><span class="skel skel-on-color" style="width:30px;height:1.5rem;"></span></div>
           <div class="stat-label">Modules Done</div>
-          <span class="stat-change" id="statModulesChange">—</span>
+          <span class="stat-change" id="statModulesChange"><span class="skel skel-on-color" style="width:64px;height:0.65em;border-radius:4px;"></span></span>
         </div>
       </div>
 
@@ -1532,7 +1450,10 @@ void main(){
           <div class="badge-showcase-title">🏆 My Badges</div>
           <div class="badge-showcase-sub">Earn badges by completing quizzes and modules</div>
           <div class="badges-grid" id="badgesGrid">
-            <!-- populated by JS -->
+            <div class="skel" style="height:74px;border-radius:12px;"></div>
+            <div class="skel" style="height:74px;border-radius:12px;"></div>
+            <div class="skel" style="height:74px;border-radius:12px;"></div>
+            <div class="skel" style="height:74px;border-radius:12px;"></div>
           </div>
         </div>
 
@@ -1543,7 +1464,18 @@ void main(){
             <button class="section-btn" onclick="goTo('modules')">View all</button>
           </div>
           <div class="progress-wrap" id="moduleProgressWrap">
-            <p style="color:var(--muted);font-size:var(--text-sm);">No module progress yet.</p>
+            <div class="progress-row">
+              <div class="progress-label"><span class="skel skel-line" style="width:130px;"></span><span class="skel skel-line" style="width:28px;"></span></div>
+              <div class="progress-track"><div class="skel" style="width:100%;height:100%;border-radius:99px;"></div></div>
+            </div>
+            <div class="progress-row">
+              <div class="progress-label"><span class="skel skel-line" style="width:96px;"></span><span class="skel skel-line" style="width:28px;"></span></div>
+              <div class="progress-track"><div class="skel" style="width:100%;height:100%;border-radius:99px;"></div></div>
+            </div>
+            <div class="progress-row">
+              <div class="progress-label"><span class="skel skel-line" style="width:150px;"></span><span class="skel skel-line" style="width:28px;"></span></div>
+              <div class="progress-track"><div class="skel" style="width:100%;height:100%;border-radius:99px;"></div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1557,7 +1489,22 @@ void main(){
             <button class="section-btn" onclick="goTo('activity')">Go to Activity</button>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;" id="upcomingActivitiesWrap">
-            <p style="color:var(--muted);font-size:var(--text-sm);">No upcoming activities.</p>
+            <div class="activity-card-fun" style="cursor:default;">
+              <div class="skel skel-circle" style="width:52px;height:52px;"></div>
+              <div class="quiz-card-info" style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <span class="skel skel-line" style="width:60%;"></span>
+                <span class="skel skel-line" style="width:40%;height:0.7em;"></span>
+              </div>
+              <span class="skel" style="width:56px;height:20px;border-radius:99px;"></span>
+            </div>
+            <div class="activity-card-fun" style="cursor:default;">
+              <div class="skel skel-circle" style="width:52px;height:52px;"></div>
+              <div class="quiz-card-info" style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <span class="skel skel-line" style="width:50%;"></span>
+                <span class="skel skel-line" style="width:35%;height:0.7em;"></span>
+              </div>
+              <span class="skel" style="width:56px;height:20px;border-radius:99px;"></span>
+            </div>
           </div>
         </div>
 
@@ -1567,7 +1514,30 @@ void main(){
             <h2 style="font-size:var(--text-lg);">Recent Activity</h2>
           </div>
           <div class="activity-list" id="recentActivityList">
-            <p style="color:var(--muted);font-size:var(--text-sm);padding:12px 0;">No recent activity yet.</p>
+            <div class="activity-item">
+              <div class="skel skel-circle" style="width:36px;height:36px;border-radius:10px;"></div>
+              <div class="activity-info" style="display:flex;flex-direction:column;gap:6px;">
+                <span class="skel skel-line" style="width:140px;"></span>
+                <span class="skel skel-line" style="width:90px;height:0.7em;"></span>
+              </div>
+              <span class="skel skel-line" style="width:40px;height:0.7em;"></span>
+            </div>
+            <div class="activity-item">
+              <div class="skel skel-circle" style="width:36px;height:36px;border-radius:10px;"></div>
+              <div class="activity-info" style="display:flex;flex-direction:column;gap:6px;">
+                <span class="skel skel-line" style="width:110px;"></span>
+                <span class="skel skel-line" style="width:70px;height:0.7em;"></span>
+              </div>
+              <span class="skel skel-line" style="width:40px;height:0.7em;"></span>
+            </div>
+            <div class="activity-item">
+              <div class="skel skel-circle" style="width:36px;height:36px;border-radius:10px;"></div>
+              <div class="activity-info" style="display:flex;flex-direction:column;gap:6px;">
+                <span class="skel skel-line" style="width:160px;"></span>
+                <span class="skel skel-line" style="width:100px;height:0.7em;"></span>
+              </div>
+              <span class="skel skel-line" style="width:40px;height:0.7em;"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -1594,7 +1564,30 @@ void main(){
       <!-- TAB: AVAILABLE -->
       <div id="tab-available">
         <div style="display:flex;flex-direction:column;gap:12px;max-width:680px;" id="availableActivitiesWrap">
-          <p style="color:var(--muted);font-size:var(--text-sm);">Loading activities…</p>
+          <div class="quiz-card">
+            <div class="skel" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div>
+            <div class="quiz-card-info" style="flex:1;display:flex;flex-direction:column;gap:6px;">
+              <span class="skel skel-line" style="width:55%;"></span>
+              <span class="skel skel-line" style="width:40%;height:0.7em;"></span>
+            </div>
+            <span class="skel" style="width:64px;height:22px;border-radius:99px;flex-shrink:0;"></span>
+          </div>
+          <div class="quiz-card">
+            <div class="skel" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div>
+            <div class="quiz-card-info" style="flex:1;display:flex;flex-direction:column;gap:6px;">
+              <span class="skel skel-line" style="width:65%;"></span>
+              <span class="skel skel-line" style="width:35%;height:0.7em;"></span>
+            </div>
+            <span class="skel" style="width:64px;height:22px;border-radius:99px;flex-shrink:0;"></span>
+          </div>
+          <div class="quiz-card">
+            <div class="skel" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div>
+            <div class="quiz-card-info" style="flex:1;display:flex;flex-direction:column;gap:6px;">
+              <span class="skel skel-line" style="width:45%;"></span>
+              <span class="skel skel-line" style="width:50%;height:0.7em;"></span>
+            </div>
+            <span class="skel" style="width:64px;height:22px;border-radius:99px;flex-shrink:0;"></span>
+          </div>
         </div>
       </div>
 
@@ -1608,7 +1601,16 @@ void main(){
       <!-- TAB: RESULTS -->
       <div id="tab-results" class="hidden">
         <div style="max-width:680px;" id="resultsWrap">
-          <p style="color:var(--muted);font-size:var(--text-sm);">Loading your results…</p>
+          <div class="result-score" style="margin-bottom:12px;padding:16px 20px;text-align:left;display:flex;flex-direction:column;gap:8px;">
+            <span class="skel skel-line" style="width:50%;height:1rem;"></span>
+            <span class="skel skel-line" style="width:80px;height:1.5rem;"></span>
+            <span class="skel skel-line" style="width:35%;height:0.7em;"></span>
+          </div>
+          <div class="result-score" style="margin-bottom:12px;padding:16px 20px;text-align:left;display:flex;flex-direction:column;gap:8px;">
+            <span class="skel skel-line" style="width:40%;height:1rem;"></span>
+            <span class="skel skel-line" style="width:80px;height:1.5rem;"></span>
+            <span class="skel skel-line" style="width:30%;height:0.7em;"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -1622,7 +1624,36 @@ void main(){
         <p>Your robotics curriculum — track progress through each unit.</p>
       </div>
       <div class="three-col" id="modulesGridWrap">
-        <p style="color:var(--muted);font-size:var(--text-sm);">Loading modules…</p>
+        <div class="module-card">
+          <div class="module-card-header">
+            <span class="skel" style="width:32px;height:32px;border-radius:8px;"></span>
+            <span class="skel skel-line" style="width:70px;height:0.7em;"></span>
+          </div>
+          <span class="skel skel-line" style="width:70%;height:1.1rem;margin-bottom:8px;"></span>
+          <span class="skel skel-line" style="width:100%;margin-bottom:4px;"></span>
+          <span class="skel skel-line" style="width:80%;margin-bottom:12px;"></span>
+          <span class="skel skel-line" style="width:60px;height:0.7em;"></span>
+        </div>
+        <div class="module-card">
+          <div class="module-card-header">
+            <span class="skel" style="width:32px;height:32px;border-radius:8px;"></span>
+            <span class="skel skel-line" style="width:70px;height:0.7em;"></span>
+          </div>
+          <span class="skel skel-line" style="width:55%;height:1.1rem;margin-bottom:8px;"></span>
+          <span class="skel skel-line" style="width:100%;margin-bottom:4px;"></span>
+          <span class="skel skel-line" style="width:65%;margin-bottom:12px;"></span>
+          <span class="skel skel-line" style="width:60px;height:0.7em;"></span>
+        </div>
+        <div class="module-card">
+          <div class="module-card-header">
+            <span class="skel" style="width:32px;height:32px;border-radius:8px;"></span>
+            <span class="skel skel-line" style="width:70px;height:0.7em;"></span>
+          </div>
+          <span class="skel skel-line" style="width:80%;height:1.1rem;margin-bottom:8px;"></span>
+          <span class="skel skel-line" style="width:100%;margin-bottom:4px;"></span>
+          <span class="skel skel-line" style="width:90%;margin-bottom:12px;"></span>
+          <span class="skel skel-line" style="width:60px;height:0.7em;"></span>
+        </div>
       </div>
     </div>
 
@@ -1632,20 +1663,76 @@ void main(){
     <div class="page page-transition hidden" id="page-leaderboard">
       <div class="page-header">
         <h1>Leaderboard 🏆</h1>
-        <p>Top students in robotics this week (last 7 days). Keep climbing!</p>
+        <p>Rankings by grade level — see who's leading in your class!</p>
+      </div>
+      <!-- Grade filter tabs -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;" id="lbGradeTabs">
+        <span class="skel" style="width:100px;height:32px;border-radius:99px;"></span>
+        <span class="skel" style="width:80px;height:32px;border-radius:99px;"></span>
+        <span class="skel" style="width:80px;height:32px;border-radius:99px;"></span>
       </div>
       <div class="two-col">
         <div class="card">
           <!-- PODIUM -->
           <div class="lb-podium-wrap" id="leaderboardPodium" style="display:none;"></div>
-          <div class="card-title" style="margin-bottom:16px;">Weekly Rankings</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div class="card-title" id="lbRankTitle">Rankings</div>
+            <span id="lbGradeLabel" style="font-size:0.75rem;font-weight:700;color:var(--gold);background:var(--gold-bg);padding:3px 10px;border-radius:99px;"></span>
+          </div>
           <div style="display:flex;flex-direction:column;gap:4px;" id="leaderboardRowsWrap">
-            <p style="color:var(--muted);font-size:var(--text-sm);">Loading rankings…</p>
+            <div class="lb-row">
+              <span class="skel skel-line" style="width:20px;height:1rem;"></span>
+              <div class="skel skel-circle" style="width:30px;height:30px;"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+                <span class="skel skel-line" style="width:120px;"></span>
+                <span class="skel skel-line" style="width:80px;height:0.65em;"></span>
+              </div>
+              <span class="skel skel-line" style="width:34px;height:1rem;"></span>
+            </div>
+            <div class="lb-row">
+              <span class="skel skel-line" style="width:20px;height:1rem;"></span>
+              <div class="skel skel-circle" style="width:30px;height:30px;"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+                <span class="skel skel-line" style="width:140px;"></span>
+                <span class="skel skel-line" style="width:70px;height:0.65em;"></span>
+              </div>
+              <span class="skel skel-line" style="width:34px;height:1rem;"></span>
+            </div>
+            <div class="lb-row">
+              <span class="skel skel-line" style="width:20px;height:1rem;"></span>
+              <div class="skel skel-circle" style="width:30px;height:30px;"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+                <span class="skel skel-line" style="width:100px;"></span>
+                <span class="skel skel-line" style="width:90px;height:0.65em;"></span>
+              </div>
+              <span class="skel skel-line" style="width:34px;height:1rem;"></span>
+            </div>
+            <div class="lb-row">
+              <span class="skel skel-line" style="width:20px;height:1rem;"></span>
+              <div class="skel skel-circle" style="width:30px;height:30px;"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+                <span class="skel skel-line" style="width:130px;"></span>
+                <span class="skel skel-line" style="width:60px;height:0.65em;"></span>
+              </div>
+              <span class="skel skel-line" style="width:34px;height:1rem;"></span>
+            </div>
           </div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:16px;" id="leaderboardSideWrap">
-          <p style="color:var(--muted);font-size:var(--text-sm);">Loading…</p>
+          <div class="card">
+            <span class="skel skel-line" style="width:140px;height:1rem;margin-bottom:10px;"></span>
+            <span class="skel skel-line" style="width:70px;height:2.5rem;margin-bottom:6px;"></span>
+            <span class="skel skel-line" style="width:60%;height:0.8em;"></span>
+          </div>
+          <div class="card">
+            <span class="skel skel-line" style="width:110px;height:1rem;margin-bottom:12px;"></span>
+            <div style="display:flex;gap:6px;">
+              <span class="skel skel-circle" style="width:28px;height:28px;"></span>
+              <span class="skel skel-circle" style="width:28px;height:28px;"></span>
+              <span class="skel skel-circle" style="width:28px;height:28px;"></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1662,25 +1749,25 @@ void main(){
       <div class="stat-grid">
         <div class="stat-card">
           <div class="stat-icon">🧑‍🎓</div>
-          <div class="stat-val" id="teacherStatTotal">—</div>
+          <div class="stat-val" id="teacherStatTotal"><span class="skel" style="width:34px;height:1.5rem;"></span></div>
           <div class="stat-label">My Students</div>
-          <span class="stat-change up" id="teacherStatApproved">— approved</span>
+          <span class="stat-change up" id="teacherStatApproved"><span class="skel skel-line" style="width:72px;height:0.65em;"></span></span>
         </div>
         <div class="stat-card">
           <div class="stat-icon">⏳</div>
-          <div class="stat-val" id="teacherStatPending">—</div>
+          <div class="stat-val" id="teacherStatPending"><span class="skel" style="width:34px;height:1.5rem;"></span></div>
           <div class="stat-label">Awaiting Approval</div>
           <span class="stat-change warn">Reviewed by teacher</span>
         </div>
         <div class="stat-card">
           <div class="stat-icon">🔴</div>
-          <div class="stat-val" id="teacherStatLive">—</div>
+          <div class="stat-val" id="teacherStatLive"><span class="skel" style="width:34px;height:1.5rem;"></span></div>
           <div class="stat-label">Live Activities</div>
-          <span class="stat-change up" id="teacherStatLiveSub">—</span>
+          <span class="stat-change up" id="teacherStatLiveSub"><span class="skel skel-line" style="width:60px;height:0.65em;"></span></span>
         </div>
         <div class="stat-card">
           <div class="stat-icon">🤖</div>
-          <div class="stat-val" id="teacherStatModules">—</div>
+          <div class="stat-val" id="teacherStatModules"><span class="skel" style="width:34px;height:1.5rem;"></span></div>
           <div class="stat-label">Modules Published</div>
           <span class="stat-change up">All grades</span>
         </div>
@@ -1693,7 +1780,27 @@ void main(){
             <button class="section-btn" onclick="goTo('teacher-students')">View all</button>
           </div>
           <div id="teacherStudentsPreview" style="display:flex;flex-direction:column;gap:8px;">
-            <p class="card-sub">Loading roster…</p>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="skel skel-circle" style="width:30px;height:30px;"></span>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+                <span class="skel skel-line" style="width:130px;"></span>
+                <span class="skel skel-line" style="width:90px;height:0.65em;"></span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="skel skel-circle" style="width:30px;height:30px;"></span>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+                <span class="skel skel-line" style="width:110px;"></span>
+                <span class="skel skel-line" style="width:70px;height:0.65em;"></span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="skel skel-circle" style="width:30px;height:30px;"></span>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+                <span class="skel skel-line" style="width:150px;"></span>
+                <span class="skel skel-line" style="width:100px;height:0.65em;"></span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="card">
@@ -1702,7 +1809,20 @@ void main(){
             <button class="section-btn" onclick="goTo('manage-content')">Manage</button>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;" id="teacherActivitiesPreview">
-            <p class="card-sub">Loading activities…</p>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="skel" style="width:36px;height:36px;border-radius:10px;flex-shrink:0;"></span>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+                <span class="skel skel-line" style="width:60%;"></span>
+                <span class="skel skel-line" style="width:40%;height:0.65em;"></span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="skel" style="width:36px;height:36px;border-radius:10px;flex-shrink:0;"></span>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+                <span class="skel skel-line" style="width:50%;"></span>
+                <span class="skel skel-line" style="width:35%;height:0.65em;"></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1728,7 +1848,39 @@ void main(){
           <table class="dtbl">
             <thead><tr><th>Name</th><th>Email</th><th>Grade</th><th>Section</th><th>Status</th><th>Activities Done</th><th>Avg Score</th><th>Registered</th><th>Actions</th></tr></thead>
             <tbody id="teacherStudentsTbody">
-              <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px;">Loading students…</td></tr>
+              <tr>
+                <td><span class="skel skel-line" style="width:110px;"></span></td>
+                <td><span class="skel skel-line" style="width:150px;"></span></td>
+                <td><span class="skel skel-line" style="width:24px;"></span></td>
+                <td><span class="skel skel-line" style="width:90px;"></span></td>
+                <td><span class="skel" style="width:60px;height:18px;border-radius:99px;"></span></td>
+                <td><span class="skel skel-line" style="width:30px;"></span></td>
+                <td><span class="skel skel-line" style="width:40px;"></span></td>
+                <td><span class="skel skel-line" style="width:70px;"></span></td>
+                <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+              </tr>
+              <tr>
+                <td><span class="skel skel-line" style="width:130px;"></span></td>
+                <td><span class="skel skel-line" style="width:170px;"></span></td>
+                <td><span class="skel skel-line" style="width:24px;"></span></td>
+                <td><span class="skel skel-line" style="width:80px;"></span></td>
+                <td><span class="skel" style="width:60px;height:18px;border-radius:99px;"></span></td>
+                <td><span class="skel skel-line" style="width:30px;"></span></td>
+                <td><span class="skel skel-line" style="width:40px;"></span></td>
+                <td><span class="skel skel-line" style="width:70px;"></span></td>
+                <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+              </tr>
+              <tr>
+                <td><span class="skel skel-line" style="width:95px;"></span></td>
+                <td><span class="skel skel-line" style="width:140px;"></span></td>
+                <td><span class="skel skel-line" style="width:24px;"></span></td>
+                <td><span class="skel skel-line" style="width:100px;"></span></td>
+                <td><span class="skel" style="width:60px;height:18px;border-radius:99px;"></span></td>
+                <td><span class="skel skel-line" style="width:30px;"></span></td>
+                <td><span class="skel skel-line" style="width:40px;"></span></td>
+                <td><span class="skel skel-line" style="width:70px;"></span></td>
+                <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -1788,11 +1940,16 @@ void main(){
           <h2 style="font-size:var(--text-lg);">⏳ Pending Approvals</h2>
           <span class="chip" style="background:var(--robot-light);color:var(--robot);" id="teacherPendingCount">0 waiting</span>
         </div>
+        <div class="bulk-bar hidden" id="pendingBulkBar">
+          <span class="bulk-bar-count" id="pendingBulkCount">0 selected</span>
+          <button class="btn-xs grn" onclick="bulkApprovePending()">✓ Approve Selected</button>
+          <button class="btn-xs red" onclick="bulkRejectPending()">✕ Reject Selected</button>
+        </div>
         <div class="tbl-wrap">
           <table class="dtbl">
-            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>School</th><th>Grade/Section</th><th>Registered</th><th>Actions</th></tr></thead>
+            <thead><tr><th class="chk-col"><input class="row-chk" type="checkbox" id="pendingSelectAllChk" onchange="togglePendingSelectAll(this)"/></th><th>Name</th><th>Email</th><th>Role</th><th>School</th><th>Grade/Section</th><th>Registered</th><th>Actions</th></tr></thead>
             <tbody id="teacherPendingTbody">
-              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Loading…</td></tr>
+              <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -1813,19 +1970,59 @@ void main(){
             <span>🔍</span>
             <input id="teacherUserSearch" placeholder="Search by name, email, or school…" oninput="renderTeacherUsers()"/>
           </div>
+          <div class="search-input" style="min-width:180px;">
+            <span>🏫</span>
+            <input id="teacherSectionSearch" placeholder="Filter by section…" oninput="renderTeacherUsers()"/>
+          </div>
           <select id="teacherStatusFilter" onchange="renderTeacherUsers()" style="padding:9px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-family:var(--font-body);font-size:var(--text-sm);">
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
           </select>
+          <button class="btn-xs" onclick="exportUsersCSV()" style="margin-left:auto;">⬇ Export CSV</button>
         </div>
         <div class="filter-pills" id="teacherRoleFilters" style="margin-bottom:14px;"></div>
+        <div class="bulk-bar hidden" id="usersBulkBar">
+          <span class="bulk-bar-count" id="usersBulkCount">0 selected</span>
+          <button class="btn-xs grn" onclick="bulkApproveUsers()">✓ Approve Selected</button>
+          <button class="btn-xs" onclick="bulkRejectUsers()">✕ Reject Selected</button>
+          <button class="btn-xs red" onclick="bulkDeleteUsers()">🗑 Delete Selected</button>
+        </div>
         <div class="tbl-wrap">
           <table class="dtbl">
-            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Grade/Section</th><th>Status</th><th>Registered</th><th>Actions</th></tr></thead>
+            <thead><tr><th class="chk-col"><input class="row-chk" type="checkbox" id="usersSelectAllChk" onchange="toggleUsersSelectAll(this)"/></th><th>Name</th><th>Email</th><th>Role</th><th>Grade/Section</th><th>Status</th><th>Registered</th><th>Actions</th></tr></thead>
             <tbody id="teacherUsersTbody">
-              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Loading users…</td></tr>
+              <tr>
+                <td><span class="skel" style="width:16px;height:16px;border-radius:4px;"></span></td>
+                <td><span class="skel skel-line" style="width:120px;"></span></td>
+                <td><span class="skel skel-line" style="width:150px;"></span></td>
+                <td><span class="skel skel-line" style="width:50px;"></span></td>
+                <td><span class="skel skel-line" style="width:90px;"></span></td>
+                <td><span class="skel" style="width:60px;height:18px;border-radius:99px;"></span></td>
+                <td><span class="skel skel-line" style="width:70px;"></span></td>
+                <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+              </tr>
+              <tr>
+                <td><span class="skel" style="width:16px;height:16px;border-radius:4px;"></span></td>
+                <td><span class="skel skel-line" style="width:100px;"></span></td>
+                <td><span class="skel skel-line" style="width:170px;"></span></td>
+                <td><span class="skel skel-line" style="width:55px;"></span></td>
+                <td><span class="skel skel-line" style="width:80px;"></span></td>
+                <td><span class="skel" style="width:60px;height:18px;border-radius:99px;"></span></td>
+                <td><span class="skel skel-line" style="width:70px;"></span></td>
+                <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+              </tr>
+              <tr>
+                <td><span class="skel" style="width:16px;height:16px;border-radius:4px;"></span></td>
+                <td><span class="skel skel-line" style="width:140px;"></span></td>
+                <td><span class="skel skel-line" style="width:130px;"></span></td>
+                <td><span class="skel skel-line" style="width:48px;"></span></td>
+                <td><span class="skel skel-line" style="width:100px;"></span></td>
+                <td><span class="skel" style="width:60px;height:18px;border-radius:99px;"></span></td>
+                <td><span class="skel skel-line" style="width:70px;"></span></td>
+                <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -1857,7 +2054,27 @@ void main(){
             <table class="dtbl">
               <thead><tr><th>Order</th><th>Module</th><th>Description</th><th>Lessons</th><th>Actions</th></tr></thead>
               <tbody id="manageModulesTbody">
-                <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Loading modules…</td></tr>
+                <tr>
+                  <td><span class="skel skel-line" style="width:20px;"></span></td>
+                  <td><span class="skel skel-line" style="width:140px;"></span></td>
+                  <td><span class="skel skel-line" style="width:220px;"></span></td>
+                  <td><span class="skel skel-line" style="width:24px;"></span></td>
+                  <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+                </tr>
+                <tr>
+                  <td><span class="skel skel-line" style="width:20px;"></span></td>
+                  <td><span class="skel skel-line" style="width:160px;"></span></td>
+                  <td><span class="skel skel-line" style="width:190px;"></span></td>
+                  <td><span class="skel skel-line" style="width:24px;"></span></td>
+                  <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+                </tr>
+                <tr>
+                  <td><span class="skel skel-line" style="width:20px;"></span></td>
+                  <td><span class="skel skel-line" style="width:120px;"></span></td>
+                  <td><span class="skel skel-line" style="width:240px;"></span></td>
+                  <td><span class="skel skel-line" style="width:24px;"></span></td>
+                  <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -1873,17 +2090,41 @@ void main(){
           </div>
           <div class="tbl-wrap">
             <table class="dtbl">
-              <thead><tr><th>Title</th><th>Status</th><th>Items</th><th>Submissions</th><th>Posted By</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Title</th><th>Status</th><th>Section</th><th>Items</th><th>Submissions</th><th>Posted By</th><th>Actions</th></tr></thead>
               <tbody id="manageActivitiesTbody">
-                <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Loading activities…</td></tr>
+                <tr>
+                  <td><span class="skel skel-line" style="width:150px;"></span></td>
+                  <td><span class="skel" style="width:50px;height:18px;border-radius:99px;"></span></td>
+                  <td><span class="skel skel-line" style="width:70px;"></span></td>
+                  <td><span class="skel skel-line" style="width:24px;"></span></td>
+                  <td><span class="skel skel-line" style="width:24px;"></span></td>
+                  <td><span class="skel skel-line" style="width:80px;"></span></td>
+                  <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+                </tr>
+                <tr>
+                  <td><span class="skel skel-line" style="width:120px;"></span></td>
+                  <td><span class="skel" style="width:50px;height:18px;border-radius:99px;"></span></td>
+                  <td><span class="skel skel-line" style="width:60px;"></span></td>
+                  <td><span class="skel skel-line" style="width:24px;"></span></td>
+                  <td><span class="skel skel-line" style="width:24px;"></span></td>
+                  <td><span class="skel skel-line" style="width:90px;"></span></td>
+                  <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+                </tr>
+                <tr>
+                  <td><span class="skel skel-line" style="width:170px;"></span></td>
+                  <td><span class="skel" style="width:50px;height:18px;border-radius:99px;"></span></td>
+                  <td><span class="skel skel-line" style="width:80px;"></span></td>
+                  <td><span class="skel skel-line" style="width:24px;"></span></td>
+                  <td><span class="skel skel-line" style="width:24px;"></span></td>
+                  <td><span class="skel skel-line" style="width:70px;"></span></td>
+                  <td><div style="display:flex;gap:6px;"><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span><span class="skel" style="width:44px;height:22px;border-radius:6px;"></span></div></td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
     </div>
-
-  </div><!-- /main-content -->
 
   <!-- ═══ MODAL: ADD/EDIT MODULE ═══ -->
   <div class="modal-overlay hidden" id="moduleModal">
@@ -1945,7 +2186,7 @@ void main(){
         <h3 id="activityModalTitle">Add Quiz / Activity</h3>
         <button class="modal-close" onclick="closeActivityModal()">✕</button>
       </div>
-      <form id="activityForm" onsubmit="return saveActivity(event)">
+      <form id="activityForm" onsubmit="return saveActivity(event)" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
         <div class="modal-body">
           <div class="form-grid-2">
             <div class="form-field">
@@ -1972,7 +2213,7 @@ void main(){
               <label for="actStatus">Status *</label>
               <select id="actStatus" onchange="toggleActivityDueDateField()">
                 <option value="live">🔴 Live now</option>
-                <option value="upcoming">Upcoming (scheduled)</option>
+                <option value="scheduled">📅 Scheduled (open/close window)</option>
                 <option value="closed">Closed</option>
               </select>
             </div>
@@ -1981,9 +2222,24 @@ void main(){
               <input id="actTimeLimit" type="number" min="1" value="15" required/>
             </div>
           </div>
-          <div class="form-field hidden" id="actDueDateField">
-            <label for="actDueDate">Available Date</label>
-            <input id="actDueDate" type="date"/>
+          <div class="form-field">
+            <label for="actTargetSection">Target Section (optional)</label>
+            <input id="actTargetSection" placeholder="e.g. Newton — students whose section contains this keyword will see this quiz"/>
+            <span style="font-size:0.7rem;color:var(--muted);margin-top:3px;">Leave blank to send to all students. Partial match works — "Newton" matches "STE-Isaac Newton".</span>
+          </div>
+          <div class="hidden" id="actScheduleFields" style="display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:0.5px;">📅 Availability Window</div>
+            <div class="form-grid-2">
+              <div class="form-field" style="margin:0;">
+                <label for="actOpenAt">Opens at</label>
+                <input id="actOpenAt" type="datetime-local"/>
+              </div>
+              <div class="form-field" style="margin:0;">
+                <label for="actCloseAt">Closes at</label>
+                <input id="actCloseAt" type="datetime-local"/>
+              </div>
+            </div>
+            <span style="font-size:0.7rem;color:var(--muted);">The quiz will automatically become visible at the open time and disappear when it closes. Leave both blank to keep it always-live once scheduled.</span>
           </div>
 
           <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:14px;display:flex;flex-direction:column;gap:12px;">
@@ -2011,7 +2267,24 @@ void main(){
         <button class="modal-close" onclick="closeSubmissionsModal()">✕</button>
       </div>
       <div class="modal-body" id="submissionsModalBody">
-        <p style="color:var(--muted);font-size:var(--text-sm);">Loading submissions…</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="skel skel-circle" style="width:32px;height:32px;"></span>
+            <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+              <span class="skel skel-line" style="width:120px;"></span>
+              <span class="skel skel-line" style="width:80px;height:0.65em;"></span>
+            </div>
+            <span class="skel skel-line" style="width:40px;"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="skel skel-circle" style="width:32px;height:32px;"></span>
+            <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+              <span class="skel skel-line" style="width:150px;"></span>
+              <span class="skel skel-line" style="width:70px;height:0.65em;"></span>
+            </div>
+            <span class="skel skel-line" style="width:40px;"></span>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="refreshSubmissionsModal()">🔄 Refresh</button>
@@ -2019,6 +2292,112 @@ void main(){
       </div>
     </div>
   </div>
+  <!-- ═══════════════════════════
+       PAGE: CODE LESSONS (student + teacher)
+  ═══════════════════════════ -->
+  <div class="page page-transition hidden" id="page-code-lessons">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h1>Code Lessons 💻</h1>
+        <p id="codeLessonsSubtitle">Learn C++ Arduino programming step by step.</p>
+      </div>
+      <!-- Teacher-only controls -->
+      <div id="clTeacherBar" class="hidden" style="display:none!important;">
+        <button class="btn btn-primary" onclick="openLessonModal(null)" style="gap:6px;">
+          <span>＋</span> Add Lesson
+        </button>
+      </div>
+    </div>
+
+    <div class="lessons-layout">
+      <!-- Sidebar: lesson list -->
+      <div class="lessons-sidebar">
+        <div class="lessons-sidebar-head">
+          📚 <span>All Lessons</span>
+          <span id="clProgressLabel" style="margin-left:auto;font-size:0.7rem;font-weight:600;color:var(--muted);">0 / 11</span>
+        </div>
+        <div class="lesson-progress-bar" style="margin:0;border-radius:0;height:3px;">
+          <div class="lesson-progress-fill" id="clProgressFill" style="width:0%"></div>
+        </div>
+        <div id="clLessonNav" style="display:flex;flex-direction:column;"></div>
+      </div>
+
+      <!-- Main lesson content area -->
+      <div id="clLessonContent" class="lesson-content">
+        <p style="color:var(--muted);font-size:var(--text-sm);">Select a lesson from the list to begin.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL: ADD / EDIT CODE LESSON (teacher only) ═══ -->
+  <div class="modal-overlay hidden" id="lessonModal">
+    <div class="modal-panel" style="max-width:760px;">
+      <div class="modal-header">
+        <h3 id="lessonModalTitle">Add Lesson</h3>
+        <button class="modal-close" onclick="closeLessonModal()">✕</button>
+      </div>
+      <form id="lessonForm" onsubmit="return saveLesson(event)" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+        <div class="modal-body">
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label>Title *</label>
+              <input id="lsnTitle" placeholder="e.g. Blinking an LED" required/>
+            </div>
+            <div class="form-field">
+              <label>Icon (emoji)</label>
+              <input id="lsnIcon" placeholder="💡" maxlength="4"/>
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label>Level</label>
+              <select id="lsnLevel">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+                <option value="capstone">Capstone</option>
+                <option value="bonus">⭐ Bonus</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Order (sequence number)</label>
+              <input id="lsnOrder" type="number" min="1" value="1" required/>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>🎯 Objective *</label>
+            <input id="lsnObjective" placeholder="What the student will achieve in this lesson" required/>
+          </div>
+
+          <div style="border-top:1px solid var(--border);padding-top:14px;display:flex;flex-direction:column;gap:10px;">
+            <div class="section-head" style="margin-bottom:0;">
+              <h2 style="font-size:var(--text-base);">Lesson Parts</h2>
+              <button type="button" class="section-btn" onclick="addLessonPart()">+ Add Part</button>
+            </div>
+            <div id="lessonPartsBuilder" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+
+          <div style="border-top:1px solid var(--border);padding-top:14px;">
+            <div class="form-field">
+              <label>💻 Starter Code</label>
+              <textarea id="lsnCode" style="font-family:var(--font-mono);font-size:0.8rem;min-height:140px;" placeholder="void setup() {&#10;  // your code here&#10;}"></textarea>
+            </div>
+            <div class="form-field">
+              <label>🔧 Try It (challenge prompt)</label>
+              <input id="lsnTryIt" placeholder="e.g. Change the delay to 100 and re-run."/>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeLessonModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="lessonSaveBtn">Save Lesson</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  </div><!-- /main-content -->
+
 </div><!-- /app-shell -->
 
 <!-- ═══ MOBILE NAV ═══ -->
@@ -2039,6 +2418,10 @@ void main(){
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>
     <span>Ranks</span>
   </button>
+  <button class="mob-nav-item" data-mob-page="code-lessons" onclick="goTo('code-lessons')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    <span>Lessons</span>
+  </button>
 </nav>
 
 <nav class="mob-nav hidden" id="mobNavTeacher">
@@ -2050,6 +2433,10 @@ void main(){
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0112 0v2"/></svg>
     <span>Students</span>
   </button>
+  <button class="mob-nav-item" data-mob-page="teacher-users" onclick="goTo('teacher-users')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M1 21v-2a6 6 0 0112 0v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.85"/></svg>
+    <span>Users</span>
+  </button>
   <button class="mob-nav-item" data-mob-page="manage-content" onclick="goTo('manage-content')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
     <span>Content</span>
@@ -2058,20 +2445,9 @@ void main(){
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>
     <span>Ranks</span>
   </button>
-</nav>
-
-<nav class="mob-nav hidden" id="mobNavTeacher">
-  <button class="mob-nav-item active" data-mob-page="teacher-dashboard" onclick="goTo('teacher-dashboard')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-    <span>Dashboard</span>
-  </button>
-  <button class="mob-nav-item" data-mob-page="teacher-users" onclick="goTo('teacher-users')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M1 21v-2a6 6 0 0112 0v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.85"/></svg>
-    <span>Users</span>
-  </button>
-  <button class="mob-nav-item" data-mob-page="manage-content" onclick="goTo('manage-content')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    <span>Content</span>
+  <button class="mob-nav-item" data-mob-page="code-lessons" onclick="goTo('code-lessons')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    <span>Lessons</span>
   </button>
 </nav>
 
@@ -2099,6 +2475,116 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
+
+// Keep students signed in across browser restarts (not just page reloads).
+// This is Firebase's default, but some environments / browser settings can
+// fall back to session-only persistence, so we set it explicitly and early —
+// before any sign-in call — to make "stay logged in" reliable.
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{ /* non-fatal: worst case, falls back to default persistence */ });
+
+// ══════════════════════════════════
+// BOOT SEQUENCE — animated loading screen
+// On page load it's purely cosmetic (gets cut off whenever the
+// real auth/verification logic adds the 'hide' class). When called
+// with a callback (e.g. after a successful manual login) it runs to
+// completion and then fires the callback itself.
+// ── Neural mesh background for boot screen ──
+(function initBootMesh(){
+  const bc = document.getElementById('bootCanvas'); if(!bc) return;
+  const bx = bc.getContext('2d');
+  let pts = [];
+  const N = 70, DIST = 160;
+  function resizeMesh(){ bc.width=window.innerWidth; bc.height=window.innerHeight; }
+  function seedMesh(){
+    pts = [];
+    for(let i=0;i<N;i++) pts.push({x:Math.random()*bc.width,y:Math.random()*bc.height,vx:(Math.random()-.5)*.45,vy:(Math.random()-.5)*.45,r:Math.random()*1.2+.8});
+  }
+  let mx=null,my=null;
+  window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  window.addEventListener('mouseout',()=>{mx=null;my=null;});
+  window.addEventListener('resize',()=>{resizeMesh();seedMesh();});
+  resizeMesh(); seedMesh();
+  function meshFrame(){
+    if(document.getElementById('loadingScreen').classList.contains('hide')) return;
+    bx.clearRect(0,0,bc.width,bc.height);
+    bx.fillStyle='#060e20'; bx.fillRect(0,0,bc.width,bc.height);
+    pts.forEach((p,i)=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>bc.width) p.vx*=-1;
+      if(p.y<0||p.y>bc.height) p.vy*=-1;
+      if(mx!==null){ const dx=mx-p.x,dy=my-p.y,d=Math.hypot(dx,dy); if(d<140){p.x-=dx*.008;p.y-=dy*.008;} }
+      bx.beginPath(); bx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      bx.fillStyle='#00e5ff'; bx.shadowBlur=6; bx.shadowColor='#00e5ff'; bx.fill(); bx.shadowBlur=0;
+      for(let j=i+1;j<pts.length;j++){
+        const p2=pts[j],dx=p.x-p2.x,dy=p.y-p2.y,d=Math.hypot(dx,dy);
+        if(d<DIST){ bx.beginPath(); bx.moveTo(p.x,p.y); bx.lineTo(p2.x,p2.y); bx.strokeStyle=`rgba(0,229,255,${(1-d/DIST)*.18})`; bx.lineWidth=.5; bx.stroke(); }
+      }
+    });
+    requestAnimationFrame(meshFrame);
+  }
+  meshFrame();
+})();
+
+// ══════════════════════════════════
+const BOOT_LOGS = [
+  "INITIALIZING NEURAL LINK...",
+  "DECRYPTING CORE PROTOCOLS...",
+  "ESTABLISHING SECURE UPLINK...",
+  "CONNECTING TO FIRESTORE...",
+  "MAPPING SYNAPTIC PATHWAYS...",
+  "AUTHENTICATING SESSION...",
+  "LOADING DASHBOARD MODULES...",
+  "SYNCING PROGRESS DATA...",
+  "CORE STABILIZED."
+];
+function runBootSequence(onComplete){
+  const screenEl = document.getElementById('loadingScreen');
+  const pctEl = document.getElementById('bootPct');
+  const fillEl = document.getElementById('bootProgressFill');
+  const feedEl = document.getElementById('bootFeed');
+  const latencyEl = document.getElementById('bootLatencyVal');
+  const ringEl = document.getElementById('bootRingCircle');
+  const RING_LEN = 282.7;
+  if(!screenEl || !pctEl || !fillEl || !feedEl){ if(onComplete) onComplete(); return; }
+
+  screenEl.classList.remove('hide');
+  feedEl.innerHTML = '';
+  fillEl.style.width = '0%';
+  pctEl.textContent = '0%';
+  if(ringEl) ringEl.style.strokeDashoffset = RING_LEN;
+  if(latencyEl) latencyEl.textContent = (8 + Math.floor(Math.random()*19)) + 'ms';
+
+  let progress = 0;
+  let finished = false;
+  function addLog(text, done){
+    const line = document.createElement('div');
+    line.className = 'boot-feed-line' + (done ? ' done' : '');
+    line.textContent = '> ' + text;
+    feedEl.appendChild(line);
+    if(feedEl.children.length > 4) feedEl.removeChild(feedEl.firstChild);
+  }
+  function tick(){
+    if(!onComplete && screenEl.classList.contains('hide')) return;
+    if(progress < 100){
+      progress = Math.min(100, progress + Math.random() * 2.6);
+      fillEl.style.width = progress + '%';
+      pctEl.textContent = Math.floor(progress) + '%';
+      if(ringEl) ringEl.style.strokeDashoffset = RING_LEN - (progress/100)*RING_LEN;
+      const idx = Math.min(Math.floor((progress / 100) * BOOT_LOGS.length), BOOT_LOGS.length - 1);
+      const current = BOOT_LOGS[idx];
+      if(feedEl.lastElementChild?.textContent !== '> ' + current){
+        addLog(current);
+      }
+      requestAnimationFrame(tick);
+    } else if(!finished){
+      finished = true;
+      addLog('ACCESS GRANTED', true);
+      if(onComplete) setTimeout(onComplete, 450);
+    }
+  }
+  setTimeout(tick, onComplete ? 150 : 400);
+}
+runBootSequence(); // cosmetic boot animation while initial auth check resolves
 
 let currentUser = null;     // { id, name, email, role, status, ... }
 let allUsersCache = [];     // used by teacher "Manage Users" page
@@ -2149,12 +2635,14 @@ service cloud.firestore {
 
     // Submissions — students create their own, teachers read all
     match /submissions/{docId} {
+      // Anyone (including unauthenticated scanners) can read — needed for QR verification
+      allow read: if true;
+      // Only the submitting student can create their own submission
       allow create: if request.auth != null &&
                        request.resource.data.userId == request.auth.uid;
-      allow read: if request.auth != null &&
-                    (resource.data.userId == request.auth.uid || isTeacher());
-      // Public verification (no auth) — read only
-      allow read: if true;
+      // Teachers can update (e.g. mark reviewed)
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
     }
   }
 }`;
@@ -2294,7 +2782,9 @@ async function handleLogin(e){
     db.collection('users').doc(cred.user.uid).update({lastLogin:new Date().toISOString()}).catch(()=>{});
     currentUser = { id: cred.user.uid, ...data };
     window._loginHandled = true;
-    enterApp();
+    document.getElementById('authPage').classList.add('hidden');
+    if(window.__authShaderStop) window.__authShaderStop();
+    runBootSequence(enterApp);
   } catch(err){
     authAlert(err.message || friendlyAuthError(err), 'err');
     btn.disabled = false; btn.innerHTML = '<span>Sign In</span>';
@@ -2335,9 +2825,9 @@ async function handleLogout(){
   currentUser = null;
   document.getElementById('app').classList.add('hidden');
   document.getElementById('authPage').classList.remove('hidden');
+  if(window.__authShaderStart) window.__authShaderStart();
   document.getElementById('loginForm').reset();
   switchAuthTab('login');
-  if(window.__authShaderStart) window.__authShaderStart();
 }
 
 // ══════════════════════════════════
@@ -2376,7 +2866,7 @@ function fmtVerifyDate(iso){
 async function runVerificationCheck(){
   const params = new URLSearchParams(window.location.search);
   const subId = params.get('verify');
-  if(!subId) return false; // not a verification link — let normal app boot proceed
+  if(!subId) return false;
 
   document.getElementById('loadingScreen').classList.add('hide');
   document.getElementById('verifyPage').classList.remove('hidden');
@@ -2384,36 +2874,94 @@ async function runVerificationCheck(){
 
   try {
     const doc = await db.collection('submissions').doc(subId).get();
+
     if(!doc.exists){
       card.innerHTML = `
-        <div class="verify-badge bad"><i class="ti ti-x" aria-hidden="true"></i></div>
+        <div class="verify-badge bad">✕</div>
         <div class="verify-status bad">Not Found</div>
-        <div class="verify-msg">This QR code doesn't match any quiz submission on record. It may be invalid or expired.</div>
+        <div class="verify-msg">This QR code doesn't match any submission on record. It may be invalid or from a different portal.</div>
         <div class="verify-footer-brand">SABNAHIS Robotics Portal · Verification</div>
       `;
       return true;
     }
+
     const r = doc.data();
+    const isDQ       = !!r.disqualified;
+    const tabCount   = r.tabSwitches || 0;
+    const deducted   = !!r.deductionApplied;
+    const scoreColor = isDQ ? 'var(--red)' : r.score >= 70 ? 'var(--green)' : 'var(--robot)';
+
+    // Integrity flags block
+    let integrityRows = '';
+    if(isDQ){
+      integrityRows += `
+        <div class="verify-row">
+          <span class="verify-row-label">⚠ Integrity</span>
+          <span class="verify-row-val" style="color:var(--red);font-weight:800;">DISQUALIFIED — 3 tab switches</span>
+        </div>`;
+    } else if(tabCount > 0){
+      integrityRows += `
+        <div class="verify-row">
+          <span class="verify-row-label">Tab Switches</span>
+          <span class="verify-row-val" style="color:${tabCount>=2?'var(--red)':'var(--robot)'};">
+            ${tabCount}× detected${deducted?' · −20% deducted':''}
+          </span>
+        </div>`;
+    } else {
+      integrityRows += `
+        <div class="verify-row">
+          <span class="verify-row-label">Integrity</span>
+          <span class="verify-row-val" style="color:var(--green);">✓ Clean — no tab switches</span>
+        </div>`;
+    }
+
     card.innerHTML = `
-      <div class="verify-badge ok"><i class="ti ti-shield-check" aria-hidden="true"></i></div>
-      <div class="verify-status ok">Verified Submission</div>
-      <div class="verify-msg">This quiz attempt is on record and matches the scanned code.</div>
-      <div class="verify-score-big">${r.score!=null?r.score+'%':'—'}</div>
-      <div style="font-size:var(--text-xs);color:var(--muted);margin-bottom:18px;">${r.correct!=null?r.correct+' / '+r.total+' correct':''}</div>
-      <div class="verify-details">
-        <div class="verify-row"><span class="verify-row-label">Student</span><span class="verify-row-val">${escapeHtmlVerify(r.userName||'Unknown')}</span></div>
-        <div class="verify-row"><span class="verify-row-label">Quiz</span><span class="verify-row-val">${escapeHtmlVerify(r.title||'—')}</span></div>
-        <div class="verify-row"><span class="verify-row-label">Grade / Section</span><span class="verify-row-val">${escapeHtmlVerify(r.gradeLevel||'—')}${r.section?(' · '+escapeHtmlVerify(r.section)):''}</span></div>
-        <div class="verify-row"><span class="verify-row-label">Submitted</span><span class="verify-row-val">${fmtVerifyDate(r.submittedAt)}</span></div>
-        <div class="verify-row"><span class="verify-row-label">Submission ID</span><span class="verify-row-val" style="font-family:var(--font-mono);font-size:0.68rem;">${escapeHtmlVerify(subId)}</span></div>
+      <div class="verify-badge ${isDQ?'bad':'ok'}">${isDQ?'🚫':'✅'}</div>
+      <div class="verify-status ${isDQ?'bad':'ok'}">${isDQ?'Disqualified':'Verified Submission'}</div>
+      <div class="verify-msg">${isDQ
+        ? 'This student was disqualified for leaving the quiz tab 3 times. Score recorded as 0.'
+        : 'This quiz attempt is genuine and on record.'}</div>
+
+      <div class="verify-score-big" style="color:${scoreColor};">${r.score!=null?r.score+'%':'—'}</div>
+      <div style="font-size:var(--text-xs);color:var(--muted);margin-bottom:18px;">
+        ${!isDQ && r.correct!=null ? r.correct+' / '+r.total+' correct' : isDQ ? '0 / '+r.total+' (disqualified)' : ''}
       </div>
-      <div class="verify-footer-brand">SABNAHIS Robotics Portal · Verification</div>
+
+      <div class="verify-details">
+        <div class="verify-row">
+          <span class="verify-row-label">Student</span>
+          <span class="verify-row-val">${escapeHtmlVerify(r.userName||'Unknown')}</span>
+        </div>
+        <div class="verify-row">
+          <span class="verify-row-label">Quiz</span>
+          <span class="verify-row-val">${escapeHtmlVerify(r.title||'—')}</span>
+        </div>
+        <div class="verify-row">
+          <span class="verify-row-label">Grade / Section</span>
+          <span class="verify-row-val">${escapeHtmlVerify(r.gradeLevel||'—')}${r.section?' · '+escapeHtmlVerify(r.section):''}</span>
+        </div>
+        <div class="verify-row">
+          <span class="verify-row-label">Submitted</span>
+          <span class="verify-row-val">${fmtVerifyDate(r.submittedAt)}</span>
+        </div>
+        ${integrityRows}
+        <div class="verify-row">
+          <span class="verify-row-label">Submission ID</span>
+          <span class="verify-row-val" style="font-family:var(--font-mono);font-size:0.68rem;word-break:break-all;">${escapeHtmlVerify(subId)}</span>
+        </div>
+      </div>
+
+      <div class="verify-footer-brand">SABNAHIS Robotics Portal · Teacher Verification</div>
     `;
   } catch(e){
+    // Permission error means Firestore rules need to be updated
+    const isPermission = (e.code==='permission-denied')||(e.message||'').toLowerCase().includes('permission');
     card.innerHTML = `
-      <div class="verify-badge bad"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
-      <div class="verify-status bad">Couldn't Verify</div>
-      <div class="verify-msg">Something went wrong while checking this code: ${escapeHtmlVerify(e.message||e)}</div>
+      <div class="verify-badge bad">⚠</div>
+      <div class="verify-status bad">${isPermission ? 'Rules Not Updated' : 'Verification Error'}</div>
+      <div class="verify-msg">${isPermission
+        ? 'Firestore Security Rules are blocking public verification. Go to Firebase Console → Firestore → Rules and update the submissions rule to <code>allow read: if true;</code>'
+        : escapeHtmlVerify(e.message||String(e))}</div>
       <div class="verify-footer-brand">SABNAHIS Robotics Portal · Verification</div>
     `;
   }
@@ -2532,11 +3080,13 @@ function renderTeacherPending(){
   document.getElementById('teacherPendingCount').textContent = `${pending.length} waiting`;
   const tbody = document.getElementById('teacherPendingTbody');
   if(pending.length===0){
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">🎉 No pending approvals right now.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">🎉 No pending approvals right now.</td></tr>`;
+    updatePendingBulkBar();
     return;
   }
   tbody.innerHTML = pending.map(u=>`
     <tr>
+      <td class="chk-col"><input class="row-chk pending-row-chk" type="checkbox" value="${u.id}" onchange="updatePendingBulkBar()"/></td>
       <td>${escapeHtml(u.name)}</td>
       <td style="font-size:0.8rem;">${escapeHtml(u.email)}</td>
       <td><span class="role-badge ${u.role}">${u.role}</span></td>
@@ -2549,14 +3099,56 @@ function renderTeacherPending(){
       </div></td>
     </tr>
   `).join('');
+  updatePendingBulkBar();
 }
 
-let teacherRoleFilter = 'all';
+function getSelectedPendingIds(){ return Array.from(document.querySelectorAll('.pending-row-chk:checked')).map(c=>c.value); }
+function togglePendingSelectAll(checkbox){
+  document.querySelectorAll('.pending-row-chk').forEach(c=>{ c.checked = checkbox.checked; });
+  updatePendingBulkBar();
+}
+function updatePendingBulkBar(){
+  const ids = getSelectedPendingIds();
+  const bar = document.getElementById('pendingBulkBar');
+  if(!bar) return;
+  document.getElementById('pendingBulkCount').textContent = ids.length + ' selected';
+  bar.classList.toggle('hidden', ids.length===0);
+  const allChk = document.getElementById('pendingSelectAllChk');
+  const total = document.querySelectorAll('.pending-row-chk').length;
+  if(allChk) allChk.checked = total>0 && ids.length===total;
+}
+async function bulkApprovePending(){
+  const ids = getSelectedPendingIds();
+  if(ids.length===0) return;
+  if(!confirm(`Approve ${ids.length} account(s)?`)) return;
+  try {
+    const batch = db.batch();
+    ids.forEach(id => batch.update(db.collection('users').doc(id), {status:'approved'}));
+    await guardPermission(batch.commit());
+    showToast(`${ids.length} account(s) approved.`,'success');
+    await loadTeacherData();
+  } catch(e){ showToast('Bulk approve failed: '+(e.message||e),'error'); }
+}
+async function bulkRejectPending(){
+  const ids = getSelectedPendingIds();
+  if(ids.length===0) return;
+  if(!confirm(`Reject and delete ${ids.length} account(s)? This cannot be undone.`)) return;
+  try {
+    const batch = db.batch();
+    ids.forEach(id => batch.delete(db.collection('users').doc(id)));
+    await guardPermission(batch.commit());
+    showToast(`${ids.length} account(s) rejected.`,'success');
+    await loadTeacherData();
+    await loadTeacherRoster();
+  } catch(e){ showToast('Bulk reject failed: '+(e.message||e),'error'); }
+}
+
+let teacherRoleFilter = 'student';
 function renderTeacherRoleFilters(){
   const counts = {all:allUsersCache.length, student:0, teacher:0};
   allUsersCache.forEach(u=>{ if(counts[u.role]!==undefined) counts[u.role]++; });
   const wrap = document.getElementById('teacherRoleFilters');
-  const roles = [['all','All'],['student','Students'],['teacher','Teachers']];
+  const roles = [['all','All'],['student','Students']];
   wrap.innerHTML = roles.map(([key,label])=>
     `<button class="filter-pill ${teacherRoleFilter===key?'active':''}" onclick="setTeacherRoleFilter('${key}')">${label} (${counts[key]||0})</button>`
   ).join('');
@@ -2564,21 +3156,32 @@ function renderTeacherRoleFilters(){
 function setTeacherRoleFilter(role){ teacherRoleFilter = role; renderTeacherRoleFilters(); renderTeacherUsers(); }
 
 function renderTeacherUsers(){
-  const search = (document.getElementById('teacherUserSearch').value||'').toLowerCase();
+  const search = (document.getElementById('teacherUserSearch').value||'').toLowerCase().trim();
+  const sectionSearch = (document.getElementById('teacherSectionSearch').value||'').toLowerCase().trim();
   const statusFilter = document.getElementById('teacherStatusFilter').value;
   let list = allUsersCache.slice();
+
+  // Debug: log what section values exist
+  if(sectionSearch){
+    console.log('[Section filter] searching for:', JSON.stringify(sectionSearch));
+    console.log('[Section filter] all section values in cache:', allUsersCache.map(u=>JSON.stringify(u.section)));
+  }
+
   if(teacherRoleFilter!=='all') list = list.filter(u=>u.role===teacherRoleFilter);
   if(statusFilter!=='all') list = list.filter(u=>u.status===statusFilter);
-  if(search) list = list.filter(u=>(u.name||'').toLowerCase().includes(search)||(u.email||'').toLowerCase().includes(search)||(u.institution||'').toLowerCase().includes(search));
+  if(search) list = list.filter(u=>(u.name||'').toLowerCase().includes(search)||(u.email||'').toLowerCase().includes(search)||(u.institution||'').toLowerCase().includes(search)||(u.section||'').toLowerCase().includes(search)||(u.gradeLevel||'').toLowerCase().includes(search));
+  if(sectionSearch) list = list.filter(u=>(u.section||'').toLowerCase().trim().includes(sectionSearch)||(u.gradeLevel||'').toLowerCase().trim().includes(sectionSearch));
   list.sort((a,b)=> new Date(b.createdAt||0) - new Date(a.createdAt||0));
 
   const tbody = document.getElementById('teacherUsersTbody');
   if(list.length===0){
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No users match your filters.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">No users match your filters.</td></tr>`;
+    updateUsersBulkBar();
     return;
   }
   tbody.innerHTML = list.map(u=>`
     <tr>
+      <td class="chk-col">${u.id!==currentUser.id?`<input class="row-chk users-row-chk" type="checkbox" value="${u.id}" onchange="updateUsersBulkBar()"/>`:''}</td>
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:0.66rem;">${initialsOf(u.name)}</div><span>${escapeHtml(u.name)}</span></div></td>
       <td style="font-size:0.8rem;">${escapeHtml(u.email)}</td>
       <td><span class="role-badge ${u.role}">${u.role}</span></td>
@@ -2592,6 +3195,85 @@ function renderTeacherUsers(){
       </div></td>
     </tr>
   `).join('');
+  updateUsersBulkBar();
+}
+
+function getSelectedUserIds(){ return Array.from(document.querySelectorAll('.users-row-chk:checked')).map(c=>c.value).filter(id=>id!==currentUser.id); }
+function toggleUsersSelectAll(checkbox){
+  document.querySelectorAll('.users-row-chk').forEach(c=>{ c.checked = checkbox.checked; });
+  updateUsersBulkBar();
+}
+function updateUsersBulkBar(){
+  const ids = getSelectedUserIds();
+  const bar = document.getElementById('usersBulkBar');
+  if(!bar) return;
+  document.getElementById('usersBulkCount').textContent = ids.length + ' selected';
+  bar.classList.toggle('hidden', ids.length===0);
+  const allChk = document.getElementById('usersSelectAllChk');
+  const total = document.querySelectorAll('.users-row-chk').length;
+  if(allChk) allChk.checked = total>0 && ids.length===total;
+}
+async function bulkApproveUsers(){
+  const ids = getSelectedUserIds();
+  if(ids.length===0) return;
+  if(!confirm(`Approve ${ids.length} account(s)?`)) return;
+  try {
+    const batch = db.batch();
+    ids.forEach(id => batch.update(db.collection('users').doc(id), {status:'approved'}));
+    await guardPermission(batch.commit());
+    showToast(`${ids.length} account(s) approved.`,'success');
+    await loadTeacherData();
+  } catch(e){ showToast('Bulk approve failed: '+(e.message||e),'error'); }
+}
+async function bulkRejectUsers(){
+  const ids = getSelectedUserIds();
+  if(ids.length===0) return;
+  if(!confirm(`Mark ${ids.length} account(s) as rejected? (Accounts are kept on record — use Delete to remove them.)`)) return;
+  try {
+    const batch = db.batch();
+    ids.forEach(id => batch.update(db.collection('users').doc(id), {status:'rejected'}));
+    await guardPermission(batch.commit());
+    showToast(`${ids.length} account(s) rejected.`,'success');
+    await loadTeacherData();
+  } catch(e){ showToast('Bulk reject failed: '+(e.message||e),'error'); }
+}
+async function bulkDeleteUsers(){
+  const ids = getSelectedUserIds();
+  if(ids.length===0) return;
+  if(!confirm(`Permanently delete ${ids.length} account(s)? This cannot be undone.`)) return;
+  try {
+    const batch = db.batch();
+    ids.forEach(id => batch.delete(db.collection('users').doc(id)));
+    await guardPermission(batch.commit());
+    showToast(`${ids.length} account(s) deleted.`,'success');
+    await loadTeacherData();
+  } catch(e){ showToast('Bulk delete failed: '+(e.message||e),'error'); }
+}
+
+function exportUsersCSV(){
+  const search = (document.getElementById('teacherUserSearch').value||'').toLowerCase();
+  const statusFilter = document.getElementById('teacherStatusFilter').value;
+  let list = allUsersCache.slice();
+  if(teacherRoleFilter!=='all') list = list.filter(u=>u.role===teacherRoleFilter);
+  if(statusFilter!=='all') list = list.filter(u=>u.status===statusFilter);
+  if(search) list = list.filter(u=>(u.name||'').toLowerCase().includes(search)||(u.email||'').toLowerCase().includes(search)||(u.institution||'').toLowerCase().includes(search));
+  if(list.length===0){ showToast('No users to export.','info'); return; }
+
+  const header = ['Name','Email','Role','Grade','Section','Department','School','Status','Registered'];
+  const csvEscape = v => { const s=String(v==null?'':v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const rows = list.map(u => [u.name,u.email,u.role,u.gradeLevel,u.section,u.department,u.institution,u.status,fmtDate(u.createdAt)].map(csvEscape).join(','));
+  const csv = [header.join(','), ...rows].join('\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sabnahis-robotics-users-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`Exported ${list.length} user(s) to CSV.`,'success');
 }
 
 async function updateUserStatus(id, status){
@@ -2704,10 +3386,21 @@ async function loadModulesFromDB(){
   updateTeacherModuleStat();
 }
 
+function updateStudentActivityBadge(){
+  const live = activitiesCache.filter(a=>a.status==='live').length;
+  const badge = document.getElementById('navActivityLiveBadge');
+  if(!badge) return;
+  if(live > 0){
+    badge.textContent = live + ' Live';
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
 async function loadActivitiesFromDB(){
   try {
     const snap = await guardPermission(db.collection('activities').orderBy('createdAt','desc').get(), null);
-    if(!snap){ activitiesCache=[]; if(currentUser&&(currentUser.role==="teacher"||currentUser.role==="teacher-admin")) showPermissionBanner(); return; }
+    if(!snap){ activitiesCache=[]; updateStudentActivityBadge(); if(currentUser&&(currentUser.role==="teacher"||currentUser.role==="teacher-admin")) showPermissionBanner(); return; }
     activitiesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
   } catch(e){ activitiesCache=[]; showToast('Could not load activities: '+(e.message||e),'error'); }
   renderManageActivities();
@@ -2715,6 +3408,7 @@ async function loadActivitiesFromDB(){
   renderStudentResults();
   updateTeacherActivityStats();
   updateTeacherActivityStat();
+  updateStudentActivityBadge();
 }
 
 function updateTeacherModuleStat(){
@@ -2854,13 +3548,14 @@ async function deleteModule(id){
 function renderManageActivities(){
   const tbody=document.getElementById('manageActivitiesTbody'); if(!tbody) return;
   if(activitiesCache.length===0){
-    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">No quizzes yet. Click "+ Add Quiz" to create one.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No quizzes yet. Click "+ Add Quiz" to create one.</td></tr>`;
     return;
   }
   tbody.innerHTML=activitiesCache.map(a=>`
     <tr>
       <td><div style="display:flex;align-items:center;gap:8px;">${a.icon||'⚡'} <strong>${escapeHtml(a.title)}</strong></div></td>
-      <td><span class="quiz-card-badge ${a.status}" style="font-size:0.68rem;padding:2px 8px;border-radius:99px;">${a.status==='live'?'🔴 Live':a.status==='upcoming'?'Upcoming':'Closed'}</span></td>
+      <td><span class="quiz-card-badge ${a.status}" style="font-size:0.68rem;padding:2px 8px;border-radius:99px;">${a.status==='live'?'🔴 Live':a.status==='scheduled'?'📅 Scheduled':'Closed'}</span>${a.openAt||a.closeAt?`<div style="font-size:0.65rem;color:var(--muted);margin-top:2px;">${a.openAt?'Opens: '+new Date(a.openAt).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}${a.openAt&&a.closeAt?' · ':''}${a.closeAt?'Closes: '+new Date(a.closeAt).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>`:''}</td>
+      <td style="font-size:0.8rem;">${a.targetSection?`<span style="background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:99px;font-size:0.7rem;font-weight:600;">📍 ${escapeHtml(a.targetSection)}</span>`:'<span style="color:var(--muted);font-size:0.75rem;">All</span>'}</td>
       <td>${a.questions?a.questions.length:0}</td>
       <td>${a.submissionCount||0}</td>
       <td style="font-size:0.8rem;">${escapeHtml(a.postedBy||'—')}</td>
@@ -2875,24 +3570,70 @@ function renderManageActivities(){
 
 function renderAvailableActivities(){
   const wrap=document.getElementById('availableActivitiesWrap'); if(!wrap) return;
-  const visible=activitiesCache.filter(a=>a.status==='live'||a.status==='upcoming');
+  const mySection = (currentUser&&currentUser.section||'').toLowerCase().trim();
+  const now = new Date();
+
+  const visible=activitiesCache.filter(a=>{
+    // Section filter
+    if(a.targetSection&&a.targetSection.trim()&&!mySection.includes(a.targetSection.toLowerCase().trim())) return false;
+    if(a.status==='closed') return false;
+    if(a.status==='live') return true;
+    if(a.status==='scheduled'){
+      // Show if we're inside the window (or no window set)
+      const opens = a.openAt ? new Date(a.openAt) : null;
+      const closes = a.closeAt ? new Date(a.closeAt) : null;
+      if(opens && now < opens) return true;  // upcoming — show as "opens soon"
+      if(closes && now > closes) return false; // expired
+      return true;
+    }
+    return false;
+  });
+
   if(visible.length===0){
-    wrap.innerHTML=`<p style="color:var(--muted);font-size:var(--text-sm);">No activities available right now.</p>`;
+    wrap.innerHTML=`<p style="color:var(--muted);font-size:var(--text-sm);">No activities available for your section right now.</p>`;
     return;
   }
-  wrap.innerHTML=visible.map(a=>`
-    <div class="quiz-card">
+
+  wrap.innerHTML=visible.map(a=>{
+    const taken = (currentUser?.quizResults||[]).some(r=>r.activityId===a.id);
+    const myResult = taken ? (currentUser.quizResults||[]).find(r=>r.activityId===a.id) : null;
+
+    // Determine window state
+    const opens  = a.openAt  ? new Date(a.openAt)  : null;
+    const closes = a.closeAt ? new Date(a.closeAt) : null;
+    const isOpen = a.status==='live' || (a.status==='scheduled' && (!opens||now>=opens) && (!closes||now<=closes));
+    const isUpcoming = a.status==='scheduled' && opens && now < opens;
+
+    // Format a datetime nicely
+    const fmtDT = d => d ? d.toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    // Countdown label
+    let windowLabel = '';
+    if(closes && isOpen) windowLabel = `<span style="font-size:0.68rem;color:var(--red);font-weight:600;">⏰ Closes ${fmtDT(closes)}</span>`;
+    else if(isUpcoming)  windowLabel = `<span style="font-size:0.68rem;color:var(--blue);font-weight:600;">🕐 Opens ${fmtDT(opens)}</span>`;
+
+    return `
+    <div class="quiz-card" style="${taken||isUpcoming?'opacity:0.78;':''}">
       <div class="quiz-card-icon">${a.icon||'⚡'}</div>
       <div class="quiz-card-info">
         <div class="quiz-card-title">${escapeHtml(a.title)}</div>
-        <div class="quiz-card-meta">${a.questions?a.questions.length:0} items · ${a.timeLimit||15} min${a.category?' · '+escapeHtml(a.category):''}</div>
+        <div class="quiz-card-meta">${a.questions?a.questions.length:0} items · ${a.timeLimit||15} min${a.category?' · '+escapeHtml(a.category):''}${a.targetSection?' · 📍 '+escapeHtml(a.targetSection):''}</div>
+        ${windowLabel}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-        <span class="quiz-card-badge ${a.status}">${a.status==='live'?'🔴 Live':'Upcoming'}</span>
-        ${a.status==='live'?`<button class="btn btn-primary" style="padding:6px 14px;font-size:0.78rem;" onclick="joinQuiz('${a.id}')">Start</button>`:''}
+        ${taken
+          ? `<span class="quiz-card-badge" style="background:var(--green-light);color:var(--green);border-radius:99px;padding:3px 10px;font-size:0.7rem;font-weight:700;">✓ Completed</span>
+             ${myResult?`<span style="font-size:0.72rem;color:var(--muted);">Score: <strong>${myResult.score}%</strong></span>`:''}`
+          : isUpcoming
+            ? `<span class="quiz-card-badge" style="background:var(--blue-light);color:var(--blue);border-radius:99px;padding:3px 10px;font-size:0.7rem;font-weight:700;">Upcoming</span>`
+            : isOpen
+              ? `<span class="quiz-card-badge live" style="border-radius:99px;padding:3px 10px;font-size:0.7rem;font-weight:700;">🔴 Live</span>
+                 <button class="btn btn-primary" style="padding:6px 14px;font-size:0.78rem;" onclick="joinQuiz('${a.id}')">Start</button>`
+              : `<span class="quiz-card-badge" style="background:var(--surface);color:var(--muted);border-radius:99px;padding:3px 10px;font-size:0.7rem;">Closed</span>`
+        }
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
+
   const tabBtn=document.getElementById('quizTabActive');
   if(tabBtn){ tabBtn.disabled=false; tabBtn.style.opacity='1'; tabBtn.style.cursor='pointer'; }
 }
@@ -2917,9 +3658,269 @@ function renderStudentResults(){
 // JOIN QUIZ — wire live quiz to student
 // ══════════════════════════════════
 let activeQuizData = null;
+
+// ══════════════════════════════════════════════════════
+// ANTI-CHEAT PROCTORING SYSTEM
+// Rules:
+//   1st tab-switch  → Warning banner (no penalty)
+//   2nd tab-switch  → Score deduction applied at submit (-20%)
+//   3rd tab-switch  → Quiz auto-submitted with 0 pts
+//
+// Additional blocks (active during quiz only):
+//   • Copy / Cut / Paste blocked
+//   • Right-click / context menu blocked
+//   • Text selection blocked
+//   • Keyboard shortcuts: Ctrl+C/X/V/A/P/S/U/F12, F12, Ctrl+Shift+I/J/C blocked
+// ══════════════════════════════════════════════════════
+let tabSwitchCount = 0;
+let quizProctorActive = false;
+const DEDUCTION_PERCENT = 20; // score deduction on 2nd switch
+
+function startProctoring(){
+  tabSwitchCount = 0;
+  quizProctorActive = true;
+  _forcedSubmitDone = false;
+}
+function stopProctoring(){
+  quizProctorActive = false;
+  // Remove any lingering overlay
+  const ov = document.getElementById('proctorOverlay');
+  if(ov) ov.remove();
+}
+
+// ── Show the warning/deduction/disqualification overlay ──
+function showProctorOverlay(switchNum){
+  const old = document.getElementById('proctorOverlay');
+  if(old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'proctorOverlay';
+
+  if(switchNum === 1){
+    // Warn — dismissible
+    overlay.style.cssText = `
+      position:fixed;top:0;left:0;right:0;z-index:9998;
+      background:#7a0000;border-bottom:3px solid #e53935;
+      padding:13px 22px;display:flex;align-items:center;gap:14px;
+      font-family:var(--font-body);animation:sUp .2s ease;box-shadow:0 4px 20px rgba(0,0,0,0.4);
+    `;
+    overlay.innerHTML = `
+      <span style="font-size:1.5rem;">⚠️</span>
+      <div style="flex:1;">
+        <div style="color:#ffcccc;font-size:0.92rem;font-weight:700;">Warning — Tab Switch Detected!</div>
+        <div style="color:rgba(255,200,200,0.75);font-size:0.78rem;margin-top:2px;">
+          Do NOT leave this tab during the quiz. A 2nd switch will deduct ${DEDUCTION_PERCENT}% from your score. A 3rd will submit your quiz with 0 points.
+        </div>
+      </div>
+      <button onclick="document.getElementById('proctorOverlay').remove()"
+        style="background:rgba(255,255,255,0.12);border:none;color:#ffcccc;
+               border-radius:8px;padding:6px 14px;cursor:pointer;font-size:0.8rem;font-weight:600;flex-shrink:0;">
+        Got it
+      </button>
+    `;
+    document.body.prepend(overlay);
+    // Auto-dismiss after 8s
+    setTimeout(()=>{ const b=document.getElementById('proctorOverlay'); if(b) b.remove(); }, 8000);
+
+  } else if(switchNum === 2){
+    // Deduction — dismissible, persistent colour change
+    overlay.style.cssText = `
+      position:fixed;top:0;left:0;right:0;z-index:9998;
+      background:#5a2d00;border-bottom:3px solid var(--robot);
+      padding:13px 22px;display:flex;align-items:center;gap:14px;
+      font-family:var(--font-body);animation:sUp .2s ease;box-shadow:0 4px 20px rgba(0,0,0,0.4);
+    `;
+    overlay.innerHTML = `
+      <span style="font-size:1.5rem;">🚨</span>
+      <div style="flex:1;">
+        <div style="color:#ffddaa;font-size:0.92rem;font-weight:700;">2nd Violation — Score Deduction Applied!</div>
+        <div style="color:rgba(255,220,170,0.75);font-size:0.78rem;margin-top:2px;">
+          ${DEDUCTION_PERCENT}% has been deducted from your final score. One more tab switch will submit your quiz automatically with 0 points.
+        </div>
+      </div>
+      <button onclick="document.getElementById('proctorOverlay').remove()"
+        style="background:rgba(255,255,255,0.12);border:none;color:#ffddaa;
+               border-radius:8px;padding:6px 14px;cursor:pointer;font-size:0.8rem;font-weight:600;flex-shrink:0;">
+        Understood
+      </button>
+    `;
+    document.body.prepend(overlay);
+    setTimeout(()=>{ const b=document.getElementById('proctorOverlay'); if(b) b.remove(); }, 10000);
+
+  } else {
+    // 3rd violation — full-screen blocking overlay, auto-submits
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:99999;
+      background:rgba(10,0,0,0.97);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      font-family:var(--font-body);gap:16px;padding:32px;text-align:center;
+    `;
+    overlay.innerHTML = `
+      <div style="font-size:3rem;">🚫</div>
+      <div style="color:#ff6b6b;font-size:1.3rem;font-weight:800;font-family:var(--font-display);">Quiz Disqualified</div>
+      <div style="color:rgba(255,180,180,0.8);font-size:0.9rem;max-width:380px;line-height:1.6;">
+        You left the quiz tab 3 times. Your quiz has been automatically submitted with a score of <strong style="color:#ff6b6b;">0 points</strong>.
+        This violation has been recorded and reported to your teacher.
+      </div>
+      <div style="color:rgba(255,180,180,0.5);font-size:0.78rem;">Redirecting in a moment…</div>
+    `;
+    document.body.appendChild(overlay);
+  }
+}
+
+// ── Core handler ──
+function handleTabSwitch(){
+  if(!quizProctorActive) return;
+  tabSwitchCount++;
+  console.warn(`[Proctor] Tab switch #${tabSwitchCount}`);
+  showProctorOverlay(tabSwitchCount);
+
+  if(tabSwitchCount >= 3){
+    stopProctoring();
+    submitQuizForced(0);
+  }
+}
+
+// ── Forced zero submission — once-guard prevents double-call ──
+let _forcedSubmitDone = false;
+async function submitQuizForced(forcedScore){
+  if(_forcedSubmitDone) return;
+  _forcedSubmitDone = true;
+  if(!activeQuizData || !currentUser) return;
+
+  clearInterval(timerInterval);
+  const qs = activeQuizData.questions || [];
+  const quizTitle = activeQuizData.title;
+  const quizId = activeQuizData.id;
+
+  const result = {
+    activityId: quizId,
+    title: quizTitle,
+    score: 0,
+    correct: 0,
+    total: qs.length,
+    submittedAt: new Date().toISOString(),
+    disqualified: true,
+    tabSwitches: tabSwitchCount
+  };
+
+  // Write to Firestore (best-effort — show DQ screen regardless)
+  try {
+    await db.collection('submissions').add({
+      userId: currentUser.id,
+      userName: currentUser.name,
+      userEmail: currentUser.email,
+      gradeLevel: currentUser.gradeLevel || '',
+      section: currentUser.section || '',
+      ...result
+    });
+    await db.collection('activities').doc(quizId).update({
+      submissionCount: firebase.firestore.FieldValue.increment(1)
+    });
+    const prevResults = currentUser.quizResults || [];
+    const newResults = [...prevResults, result];
+    const avgScore = Math.round(newResults.reduce((s,r)=>s+r.score,0)/newResults.length);
+    await db.collection('users').doc(currentUser.id).update({
+      quizResults: newResults,
+      quizzesDone: newResults.length,
+      overallScore: avgScore
+    });
+    currentUser.quizResults = newResults;
+    db.collection('leaderboard').doc(currentUser.id).set({
+      uid:currentUser.id, name:currentUser.name,
+      gradeLevel:currentUser.gradeLevel||'', section:currentUser.section||'',
+      overallScore:avgScore, quizzesDone:newResults.length, badges:currentUser.badges||[],
+      streak:currentUser.streak||0, updatedAt:new Date().toISOString()
+    }).catch(()=>{});
+  } catch(err){
+    console.error('Force-submit Firestore error:', err);
+  }
+
+  // Always show DQ screen — regardless of whether Firestore succeeded
+  activeQuizData = null;
+  const ov = document.getElementById('proctorOverlay');
+  if(ov) ov.remove();
+
+  const wrap = document.getElementById('quizRoomWrap');
+  if(wrap) wrap.innerHTML = `
+    <div style="text-align:center;padding:40px 16px;">
+      <div style="font-size:3rem;margin-bottom:14px;">🚫</div>
+      <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--red);margin-bottom:10px;">Quiz Disqualified</div>
+      <div style="color:var(--muted);font-size:var(--text-sm);line-height:1.6;margin-bottom:24px;max-width:320px;margin-left:auto;margin-right:auto;">
+        You switched tabs 3 times during the quiz.<br>
+        Your score has been recorded as <strong style="color:var(--red);">0 points</strong> and your teacher has been notified.
+      </div>
+      <button class="btn btn-secondary" onclick="switchActivityTab(document.querySelectorAll('.quiz-tab')[0],'tab-available')">Back to Activities</button>
+    </div>
+  `;
+  switchActivityTab(document.querySelectorAll('.quiz-tab')[0], 'tab-available');
+}
+
+// ── Detection listeners — debounced so visibilitychange + blur on the same
+//    alt-tab never double-count (cooldown: 600ms) ──
+let _lastSwitchTime = 0;
+function _debouncedTabSwitch(){
+  const now = Date.now();
+  if(now - _lastSwitchTime < 600) return; // same physical switch, skip
+  _lastSwitchTime = now;
+  handleTabSwitch();
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) _debouncedTabSwitch();
+});
+window.addEventListener('blur', ()=>{
+  _debouncedTabSwitch();
+});
+
+// ══════════════════════════════════
+// COPY / PASTE / RIGHT-CLICK / SELECT BLOCKING
+// Active only during quiz
+// ══════════════════════════════════
+function blockEvent(e){
+  if(!quizProctorActive) return;
+  e.preventDefault();
+  e.stopPropagation();
+  showToast('❌ This action is disabled during the quiz.','error');
+  return false;
+}
+function blockKeyboard(e){
+  if(!quizProctorActive) return;
+  const key = e.key || '';
+  const ctrl = e.ctrlKey || e.metaKey;
+  // Block Ctrl+C/X/V/A/P/S/U and F12, Ctrl+Shift+I/J/C
+  const blockedCtrl = ctrl && ['c','x','v','a','p','s','u'].includes(key.toLowerCase());
+  const blockedF    = key === 'F12';
+  const blockedDevtools = ctrl && e.shiftKey && ['i','j','c'].includes(key.toLowerCase());
+  if(blockedCtrl || blockedF || blockedDevtools){
+    e.preventDefault();
+    e.stopPropagation();
+    if(blockedCtrl) showToast('❌ Copying/pasting is disabled during the quiz.','error');
+    return false;
+  }
+}
+document.addEventListener('copy',        blockEvent, true);
+document.addEventListener('cut',         blockEvent, true);
+document.addEventListener('paste',       blockEvent, true);
+document.addEventListener('contextmenu', blockEvent, true);
+document.addEventListener('keydown',     blockKeyboard, true);
+// Block text selection via CSS toggle
+document.addEventListener('selectstart', (e)=>{
+  if(!quizProctorActive) return;
+  // Allow selection inside inputs/textareas
+  if(['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  e.preventDefault();
+});
+
 function joinQuiz(activityId){
   const act=activitiesCache.find(a=>a.id===activityId);
   if(!act){ showToast('Activity not found.','error'); return; }
+
+  // ── One-attempt guard ──
+  const alreadyTaken = (currentUser?.quizResults||[]).some(r=>r.activityId===activityId);
+  if(alreadyTaken){
+    showToast('You have already submitted this quiz. Each quiz can only be taken once.','error');
+    return;
+  }
   activeQuizData=act;
   const wrap=document.getElementById('quizRoomWrap');
   const qs=act.questions||[];
@@ -2953,27 +3954,39 @@ function joinQuiz(activityId){
       `).join('')}
       <div style="display:flex;gap:10px;margin-top:20px;">
         <button class="btn btn-primary" onclick="submitQuiz()">Submit Quiz</button>
-        <button class="btn btn-secondary" onclick="switchActivityTab(null,'tab-available')">Cancel</button>
+        <button class="btn btn-secondary" onclick="stopProctoring();switchActivityTab(null,'tab-available')">Cancel</button>
       </div>
     `;
   }
   switchActivityTab(document.querySelectorAll('.quiz-tab')[1],'tab-active-quiz');
   startTimer();
+  startProctoring();
 }
 
 async function submitQuiz(){
   if(!activeQuizData||!currentUser) return;
+  stopProctoring();
   clearInterval(timerInterval);
   const qs=activeQuizData.questions||[];
   let correct=0;
   qs.forEach((q,i)=>{
     if(answers[i]!==undefined && answers[i]===(q.correctIndex??q.correct??-1)) correct++;
   });
-  const score=qs.length>0?Math.round(correct/qs.length*100):0;
+  let score=qs.length>0?Math.round(correct/qs.length*100):0;
+
+  // Apply deduction if student had exactly 2 tab switches
+  let deductionApplied = false;
+  if(tabSwitchCount >= 2){
+    score = Math.max(0, score - DEDUCTION_PERCENT);
+    deductionApplied = true;
+  }
+
   const result={
     activityId:activeQuizData.id,
     title:activeQuizData.title,
     score,correct,total:qs.length,
+    tabSwitches:tabSwitchCount,
+    deductionApplied,
     submittedAt:new Date().toISOString()
   };
   try {
@@ -3011,6 +4024,12 @@ async function submitQuiz(){
     currentUser.quizResults=newResults;
     currentUser.quizzesDone=quizzesDone;
     currentUser.overallScore=avgScore;
+    db.collection('leaderboard').doc(currentUser.id).set({
+      uid:currentUser.id, name:currentUser.name,
+      gradeLevel:currentUser.gradeLevel||'', section:currentUser.section||'',
+      overallScore:avgScore, quizzesDone, badges:currentUser.badges||[],
+      streak:(currentUser.streak||0)+1, updatedAt:new Date().toISOString()
+    }).catch(()=>{});
     showToast(`Quiz submitted! Your score: ${score}%`,'success');
     // Show result + unique verification QR code
     const verifyUrl = window.location.origin + window.location.pathname + '?verify=' + encodeURIComponent(submissionId);
@@ -3020,6 +4039,7 @@ async function submitQuiz(){
         <div style="font-size:2.5rem;font-weight:700;font-family:var(--font-mono);color:var(--gold);">${score}%</div>
         <div style="font-size:var(--text-base);font-weight:600;margin-top:6px;">${activeQuizData.title}</div>
         <div style="font-size:var(--text-sm);color:var(--muted);margin-top:4px;">${correct} / ${qs.length} correct</div>
+        ${deductionApplied ? `<div style="margin-top:8px;padding:6px 12px;background:var(--robot-light);border:1px solid var(--robot);border-radius:8px;font-size:0.78rem;color:var(--robot);font-weight:600;">⚠ ${DEDUCTION_PERCENT}% deducted for tab switching</div>` : ''}
       </div>
       <div class="verify-qr-card">
         <div class="verify-qr-title"><i class="ti ti-shield-check" aria-hidden="true"></i> Proof of Completion</div>
@@ -3086,7 +4106,9 @@ function openActivityModal(id){
     document.getElementById('actTimeLimit').value=a.timeLimit||15;
     document.getElementById('actModule').value=a.moduleId||'';
     toggleActivityDueDateField();
-    if(a.dueDate) document.getElementById('actDueDate').value=a.dueDate;
+    if(a.openAt) document.getElementById('actOpenAt').value=a.openAt;
+    if(a.closeAt) document.getElementById('actCloseAt').value=a.closeAt;
+    document.getElementById('actTargetSection').value=a.targetSection||'';
     (a.questions||[]).forEach(q=>addQuestionBlock(q));
   } else {
     document.getElementById('activityForm').reset();
@@ -3098,9 +4120,9 @@ function closeActivityModal(){ document.getElementById('activityModal').classLis
 
 function toggleActivityDueDateField(){
   const v=document.getElementById('actStatus').value;
-  const f=document.getElementById('actDueDateField');
-  if(v==='upcoming'){ f.classList.remove('hidden'); f.style.display=''; }
-  else { f.classList.add('hidden'); }
+  const f=document.getElementById('actScheduleFields');
+  if(v==='scheduled'){ f.classList.remove('hidden'); f.style.display='flex'; }
+  else { f.classList.add('hidden'); f.style.display='none'; }
 }
 
 function addQuestionBlock(data){
@@ -3152,7 +4174,9 @@ async function saveActivity(e){
     moduleId:document.getElementById('actModule').value||'',
     status:document.getElementById('actStatus').value,
     timeLimit:parseInt(document.getElementById('actTimeLimit').value)||15,
-    dueDate:document.getElementById('actDueDate').value||'',
+    openAt:document.getElementById('actOpenAt').value||'',
+    closeAt:document.getElementById('actCloseAt').value||'',
+    targetSection:document.getElementById('actTargetSection').value.trim(),
     questions,
     postedBy:currentUser?currentUser.name:'',
     updatedAt:new Date().toISOString()
@@ -3245,13 +4269,14 @@ async function refreshSubmissionsModal(){
       ${subs.length===0?`<p style="color:var(--muted);font-size:var(--text-sm);">No one has submitted this activity yet.</p>`:`
       <div class="tbl-wrap">
         <table class="dtbl">
-          <thead><tr><th>Student</th><th>Grade/Section</th><th>Score</th><th>Submitted</th></tr></thead>
+          <thead><tr><th>Student</th><th>Grade/Section</th><th>Score</th><th>Tab Switches</th><th>Submitted</th></tr></thead>
           <tbody>
             ${subs.map(s=>`
               <tr>
                 <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:26px;height:26px;font-size:0.64rem;">${initialsOf(s.userName)}</div><span>${escapeHtml(s.userName||'—')}</span></div></td>
                 <td style="font-size:0.8rem;">${s.gradeLevel?'Grade '+escapeHtml(s.gradeLevel):'—'}${s.section?' · '+escapeHtml(s.section):''}</td>
-                <td><span class="status-badge ${s.score>=70?'approved':'pending'}">${s.score}%</span></td>
+                <td><span class="status-badge ${s.score>=70?'approved':'pending'}">${s.score}%</span>${s.deductionApplied?`<span style="font-size:0.65rem;color:var(--robot);font-weight:700;margin-left:4px;">-${DEDUCTION_PERCENT}%</span>`:''}</td>
+                <td>${s.disqualified?`<span style="font-weight:700;color:var(--red);font-size:0.82rem;">🚫 DQ</span>`:s.tabSwitches>0?`<span style="font-weight:700;color:var(--robot);font-size:0.82rem;">⚠ ${s.tabSwitches}x</span>`:`<span style="color:var(--green);font-size:0.82rem;">✓ 0</span>`}</td>
                 <td style="white-space:nowrap;font-size:0.8rem;">${fmtDate(s.submittedAt)}</td>
               </tr>
             `).join('')}
@@ -3277,30 +4302,143 @@ async function refreshSubmissionsModal(){
 // ══════════════════════════════════
 // LEADERBOARD — Firestore
 // ══════════════════════════════════
-async function loadLeaderboard(){
+let lbAllStudents = [];
+let lbActiveGrade = 'all';
+
+/* ── FIRESTORE RULES NEEDED ──────────────────────────────────
+   Add this rule to Firebase Console → Firestore → Rules
+   so any signed-in student can read the leaderboard:
+
+   match /leaderboard/{uid} {
+     allow read:  if request.auth != null;
+     allow write: if request.auth.uid == uid;
+   }
+
+   Then call populateLeaderboardFromUsers() once from the
+   browser console (as teacher) to backfill existing scores.
+──────────────────────────────────────────────────────────── */
+
+async function populateLeaderboardFromUsers(){
   try {
-    const snap = await db.collection('users')
-      .where('role','==','student')
-      .where('status','==','approved')
-      .orderBy('overallScore','desc')
-      .limit(20)
-      .get();
-    const leaders = snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderLeaderboard(leaders);
-  } catch(e){
-    // Fallback if no index: fetch all and sort client-side
-    try {
-      const snap2 = await db.collection('users').where('role','==','student').where('status','==','approved').get();
-      const leaders = snap2.docs.map(d=>({id:d.id,...d.data()}))
-        .filter(u=>u.overallScore!=null)
-        .sort((a,b)=>(b.overallScore||0)-(a.overallScore||0))
-        .slice(0,20);
-      renderLeaderboard(leaders);
-    } catch(e2){ showToast('Could not load leaderboard.','error'); }
+    const snap = await db.collection('users').where('role','==','student').where('status','==','approved').get();
+    const batch = db.batch();
+    let n = 0;
+    snap.docs.forEach(doc => {
+      const u = doc.data();
+      if((u.quizzesDone||0) > 0){
+        batch.set(db.collection('leaderboard').doc(doc.id), {
+          uid:doc.id, name:u.name||'', gradeLevel:u.gradeLevel||'', section:u.section||'',
+          overallScore:u.overallScore||0, quizzesDone:u.quizzesDone||0,
+          badges:u.badges||[], streak:u.streak||0, updatedAt:new Date().toISOString()
+        });
+        n++;
+      }
+    });
+    await batch.commit();
+    showToast(`Leaderboard backfilled: ${n} students.`,'success');
+  } catch(e){ showToast('Backfill failed: '+e.message,'error'); }
+}
+
+async function loadLeaderboard(){
+  // Show skeleton while loading
+  const wrap = document.getElementById('leaderboardRowsWrap');
+  if(wrap) wrap.innerHTML = [1,2,3,4,5].map(()=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius);background:var(--surface);">
+      <div class="skel" style="width:22px;height:14px;border-radius:3px;"></div>
+      <div class="skel" style="width:30px;height:30px;border-radius:50%;flex-shrink:0;"></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+        <div class="skel" style="width:50%;height:11px;border-radius:3px;"></div>
+        <div class="skel" style="width:30%;height:9px;border-radius:3px;"></div>
+      </div>
+      <div class="skel" style="width:38px;height:14px;border-radius:3px;"></div>
+    </div>`).join('');
+
+  // Strategy 1 — public leaderboard collection (written on every quiz submit)
+  try {
+    const snap = await db.collection('leaderboard').orderBy('overallScore','desc').limit(50).get();
+    if(!snap.empty){
+      lbAllStudents = snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderLbGradeTabs();
+      const defaultGrade = (currentUser&&currentUser.role==='student'&&currentUser.gradeLevel) ? currentUser.gradeLevel : 'all';
+      setLbGrade(defaultGrade);
+      return;
+    }
+  } catch(e){ /* permission denied — fall through */ }
+
+  // Strategy 2 — users collection (works for teachers / permissive rules)
+  try {
+    const snap = await db.collection('users').where('role','==','student').where('status','==','approved').get();
+    lbAllStudents = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.overallScore||0)-(a.overallScore||0));
+    renderLbGradeTabs();
+    const defaultGrade = (currentUser&&currentUser.role==='student'&&currentUser.gradeLevel) ? currentUser.gradeLevel : 'all';
+    setLbGrade(defaultGrade);
+    return;
+  } catch(e){ /* fall through */ }
+
+  // Strategy 3 — show only current user so page isn't blank
+  lbAllStudents = (currentUser && (currentUser.quizzesDone||0) > 0) ? [{
+    id:currentUser.id, name:currentUser.name,
+    gradeLevel:currentUser.gradeLevel||'', section:currentUser.section||'',
+    overallScore:currentUser.overallScore||0, quizzesDone:currentUser.quizzesDone||0,
+    badges:currentUser.badges||[], streak:currentUser.streak||0
+  }] : [];
+  renderLbGradeTabs();
+  const defaultGrade = (currentUser&&currentUser.role==='student'&&currentUser.gradeLevel) ? currentUser.gradeLevel : 'all';
+  setLbGrade(defaultGrade);
+  if(lbAllStudents.length===0 && wrap){
+    wrap.innerHTML = `<div style="text-align:center;padding:32px 16px;color:var(--muted);">
+      <div style="font-size:2rem;margin-bottom:10px;">📋</div>
+      <div style="font-weight:600;color:var(--ink);margin-bottom:6px;">No scores yet</div>
+      <div style="font-size:var(--text-sm);">Complete a quiz to appear on the leaderboard!</div>
+      <button class="section-btn" style="margin-top:14px;" onclick="loadLeaderboard()">↻ Retry</button>
+    </div>`;
   }
 }
 
-function renderLeaderboard(leaders){
+function renderLbGradeTabs(){
+  const tabWrap = document.getElementById('lbGradeTabs');
+  if(!tabWrap) return;
+  // Collect which grades have students
+  const gradeCounts = {};
+  lbAllStudents.forEach(u=>{
+    const g = u.gradeLevel||'';
+    if(g) gradeCounts[g] = (gradeCounts[g]||0)+1;
+  });
+  const grades = ['9','10','11','12'].filter(g=>gradeCounts[g]);
+  const tabs = [['all','🏆 All Grades', lbAllStudents.length], ...grades.map(g=>['grade-'+g, 'Grade '+g, gradeCounts[g]])];
+  tabWrap.innerHTML = tabs.map(([key,label,count])=>`
+    <button onclick="setLbGrade('${key}')"
+      id="lbTab-${key}"
+      style="padding:7px 16px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);color:var(--ink-3);font-size:var(--text-sm);font-weight:600;cursor:pointer;transition:all var(--transition);"
+    >${label} <span style="font-size:0.7rem;color:var(--muted);">(${count})</span></button>
+  `).join('');
+}
+
+function setLbGrade(key){
+  lbActiveGrade = key;
+  // Update tab styles
+  document.querySelectorAll('[id^="lbTab-"]').forEach(btn=>{
+    const active = btn.id === 'lbTab-'+key;
+    btn.style.background = active ? 'var(--gold)' : 'var(--surface)';
+    btn.style.color = active ? '#fff' : 'var(--ink-3)';
+    btn.style.borderColor = active ? 'var(--gold)' : 'var(--border)';
+  });
+  const grade = key.startsWith('grade-') ? key.replace('grade-','') : null;
+  const filtered = grade
+    ? lbAllStudents.filter(u=>(u.gradeLevel||'')=== grade)
+    : lbAllStudents;
+  const sorted = [...filtered].sort((a,b)=>(b.overallScore||0)-(a.overallScore||0)).slice(0,20);
+
+  // Update label chip
+  const chip = document.getElementById('lbGradeLabel');
+  if(chip) chip.textContent = grade ? 'Grade '+grade : 'All Grades';
+  const titleEl = document.getElementById('lbRankTitle');
+  if(titleEl) titleEl.textContent = grade ? 'Grade '+grade+' Rankings' : 'Overall Rankings';
+
+  renderLeaderboard(sorted, grade);
+}
+
+function renderLeaderboard(leaders, grade){
   const wrap=document.getElementById('leaderboardRowsWrap'); if(!wrap) return;
 
   // ── Podium (top 3) ──
@@ -3308,7 +4446,6 @@ function renderLeaderboard(leaders){
   const top3 = leaders.slice(0,3);
   if(podium && top3.length > 0){
     podium.style.display = 'flex';
-    // Reorder: 2nd, 1st, 3rd
     const order = [top3[1], top3[0], top3[2]].filter(Boolean);
     const classes = top3.length > 1 ? ['silver','gold','bronze'] : ['gold'];
     const heights = top3.length > 1 ? [68,90,50] : [90];
@@ -3321,10 +4458,12 @@ function renderLeaderboard(leaders){
         <div class="lb-podium-bar ${classes[i]}" style="height:${heights[i]}px;">${['#2','#1','#3'][i]}</div>
       </div>
     `).join('');
+  } else if(podium){
+    podium.style.display = 'none';
   }
 
   if(leaders.length===0){
-    wrap.innerHTML=`<p style="color:var(--muted);font-size:var(--text-sm);">No scores yet — complete quizzes to appear here!</p>`;
+    wrap.innerHTML=`<p style="color:var(--muted);font-size:var(--text-sm);">No scores yet in ${grade?'Grade '+grade:'this view'} — complete quizzes to appear here!</p>`;
   } else {
     const medals=['🥇','🥈','🥉'];
     wrap.innerHTML=leaders.map((u,i)=>`
@@ -3346,15 +4485,18 @@ function renderLeaderboard(leaders){
     `).join('');
   }
 
-  // Side panel
+  // Side panel — rank is relative to the current filtered view
   const side=document.getElementById('leaderboardSideWrap'); if(!side) return;
   const myRank = currentUser ? leaders.findIndex(u=>u.id===currentUser.id)+1 : 0;
+  // Also compute overall rank across all students
+  const myOverallRank = currentUser ? lbAllStudents.findIndex(u=>u.id===currentUser.id)+1 : 0;
   side.innerHTML=`
     <div class="card">
-      <div class="card-title" style="margin-bottom:8px;">📊 Your Rank</div>
+      <div class="card-title" style="margin-bottom:8px;">📊 Your Rank${grade?' in Grade '+grade:''}</div>
       ${currentUser?`
         <div style="font-family:var(--font-mono);font-size:2.5rem;font-weight:800;color:var(--gold);line-height:1;">#${myRank||'—'}</div>
         <div style="font-size:var(--text-sm);color:var(--muted);margin-top:4px;">Score: ${currentUser.overallScore??0}% · ${currentUser.quizzesDone||0} quizzes</div>
+        ${grade && myOverallRank ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">Overall rank (all grades): <strong style="color:var(--ink);">#${myOverallRank}</strong></div>` : ''}
         <div style="margin-top:10px;font-size:0.75rem;color:var(--muted);">
           ${myRank > 1 ? `Keep going! You're <strong style="color:var(--ink);">${myRank-1}</strong> place${myRank-1===1?'':'s'} from the top.` : myRank===1 ? '🏆 You\'re #1! Amazing work!' : 'Complete quizzes to get on the board!'}
         </div>
@@ -3381,7 +4523,7 @@ function renderLeaderboard(leaders){
 const _origGoTo = typeof goTo === 'function' ? goTo : null;
 function goTo(pageId){
   // Call original navigation
-  const pages2 = ['dashboard','activity','modules','leaderboard','teacher-dashboard','teacher-students','teacher-dashboard','teacher-users','manage-content'];
+  const pages2 = ['dashboard','activity','modules','leaderboard','teacher-dashboard','teacher-students','teacher-dashboard','teacher-users','manage-content','code-lessons'];
   pages2.forEach(p=>{
     const el=document.getElementById('page-'+p);
     if(el) el.classList.add('hidden');
@@ -3403,7 +4545,8 @@ function goTo(pageId){
     dashboard:'My Dashboard', activity:'Activity Area', modules:'Modules',
     leaderboard:'Leaderboard', 'teacher-dashboard':'My Dashboard',
     'teacher-students':'My Students', 'teacher-dashboard':'Dashboard',
-    'teacher-users':'Manage Users', 'manage-content':'Manage Content'
+    'teacher-users':'Manage Users', 'manage-content':'Manage Content',
+    'code-lessons':'Code Lessons'
   };
   const title=pageTitlesLocal[pageId]||pageId;
   const tt=document.getElementById('topbarTitle'); if(tt) tt.textContent=title;
@@ -3418,6 +4561,7 @@ function goTo(pageId){
   if(pageId==='manage-content') loadManageContent();
   if(pageId==='teacher-students') loadTeacherRoster();
   if(pageId==='teacher-users') loadTeacherData();
+  if(pageId==='code-lessons') initCodeLessons();
 }
 
 // ══════════════════════════════════
@@ -3847,6 +4991,385 @@ function showToast(msg, type='info'){
 }
 function createToastContainer(){
   const c=document.createElement('div');c.id='toastContainer';c.className='toast-wrap';document.body.appendChild(c);return c;
+}
+
+// ══════════════════════════════════════════════════════
+// CODE LESSONS — hardcoded built-ins + Firestore custom
+// ══════════════════════════════════════════════════════
+
+
+const CODE_LESSONS = [
+  {
+    id:'l1', num:'01', icon:'💡', level:'beginner', title:'Your First Sketch — Blinking an LED',
+    objective:'Place a red LED on the board, load the starter sketch, and press Run to make it blink.',
+    parts:[
+      {title:'Every sketch has two functions',body:`Every Arduino program is built from <code>setup()</code> and <code>loop()</code>. <code>setup()</code> runs once when the board powers on — it's where you configure pins and start Serial. <code>loop()</code> runs forever. All your program's work happens here.`},
+      {title:'Talking to a pin',body:`<code>pinMode(pin, OUTPUT)</code> tells Arduino to send voltage out of that pin. <code>digitalWrite(pin, HIGH)</code> turns it on (5V). <code>LOW</code> turns it off (0V). <code>delay(1000)</code> pauses for 1000 milliseconds.<br><br>Two habits to build now: every instruction ends with a <strong>semicolon ( ; )</strong>, and every function body is wrapped in <strong>curly braces { }</strong>.`},
+    ],
+    code:`int LED = 13;\n\nvoid setup() {\n  pinMode(LED, OUTPUT);   // pin 13 sends voltage out\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  digitalWrite(LED, HIGH);  // turn ON\n  delay(500);\n  digitalWrite(LED, LOW);   // turn OFF\n  delay(500);\n}`,
+    tryIt:'Open the simulator, drag a red LED onto the breadboard, then press Run.'
+  },
+  {
+    id:'l2', num:'02', icon:'📦', level:'beginner', title:'Variables & Constants',
+    objective:'Rewrite the blink sketch so the pin number is stored in a named variable.',
+    parts:[
+      {title:'Why use a variable?',body:`Typing <code>13</code> everywhere makes code hard to read and change. Store it once — <code>int ledPin = 13;</code> — and reuse <code>ledPin</code> everywhere. Rewire to a different pin? Change one line.`},
+      {title:'Common variable types',body:`<ul><li><code>int</code> — whole numbers (pin numbers, counters)</li><li><code>float</code> — decimals (sensor readings, temperatures)</li><li><code>bool</code> — true or false (is button pressed?)</li><li><code>const int</code> — can never change after being set; ideal for pin numbers</li></ul>Variable names are case-sensitive. <code>ledPin</code> is valid; <code>1pin</code> is not.`},
+    ],
+    code:`const int ledPin = 13;  // never changes\nint blinkDelay = 400;    // can change\n\nvoid setup() {\n  pinMode(ledPin, OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  digitalWrite(ledPin, HIGH);\n  delay(blinkDelay);\n  digitalWrite(ledPin, LOW);\n  delay(blinkDelay);\n}`,
+    tryIt:'Change blinkDelay to 100 and run again — one number change, whole new speed.'
+  },
+  {
+    id:'l3', num:'03', icon:'📺', level:'beginner', title:'Talking Back — The Serial Monitor',
+    objective:'Print a message to the Serial Monitor every time the LED switches state.',
+    parts:[
+      {title:'Why print things?',body:`You can't always see what's happening inside your code. Printing to the Serial Monitor is the most useful debugging habit in Arduino — professionals use it constantly.`},
+      {title:'Two printing functions',body:`<ul><li><code>Serial.print("ON")</code> prints text, keeps cursor on same line</li><li><code>Serial.println("ON")</code> prints text + moves to new line</li><li><code>Serial.begin(9600)</code> must be called in <code>setup()</code> first</li></ul>`},
+    ],
+    code:`int ledPin = 13;\n\nvoid setup() {\n  pinMode(ledPin, OUTPUT);\n  Serial.begin(9600);\n  Serial.println("Starting blink program...");\n}\n\nvoid loop() {\n  digitalWrite(ledPin, HIGH);\n  Serial.println("LED is ON");\n  delay(500);\n  digitalWrite(ledPin, LOW);\n  Serial.println("LED is OFF");\n  delay(500);\n}`,
+    tryIt:'Click the Serial Monitor tab at the bottom of the simulator to watch messages appear live.'
+  },
+  {
+    id:'l4', num:'04', icon:'🔘', level:'intermediate', title:'Reading a Button (Digital Input)',
+    objective:'Wire a push button and an LED, then light the LED only while the button is held down.',
+    parts:[
+      {title:'Input vs. Output',body:`So far every pin has been an OUTPUT. A button is an INPUT — Arduino reads voltage from it. Use <code>pinMode(pin, INPUT_PULLUP)</code> which keeps the pin HIGH by default; the button pulls it LOW when pressed.`},
+      {title:'Making decisions',body:`An <code>if / else</code> statement runs different code depending on a condition:<br><br><code>if (digitalRead(btn) == LOW) { ... } else { ... }</code><br><br>Notice the double equals <code>==</code> for comparison — a single <code>=</code> is assignment. Mixing them up is the most common beginner bug.`},
+    ],
+    code:`int buttonPin = 2;\nint ledPin = 13;\n\nvoid setup() {\n  pinMode(ledPin, OUTPUT);\n  pinMode(buttonPin, INPUT_PULLUP);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  if (digitalRead(buttonPin) == LOW) {  // LOW = pressed\n    digitalWrite(ledPin, HIGH);\n    Serial.println("Button pressed!");\n  } else {\n    digitalWrite(ledPin, LOW);\n  }\n  delay(50);\n}`,
+    tryIt:'Drag a Push Button and LED onto the board, run the sketch, then click and hold the button.'
+  },
+  {
+    id:'l5', num:'05', icon:'🎚️', level:'intermediate', title:'Analog Input & PWM (Potentiometer)',
+    objective:'Turn a potentiometer to read a changing analog value, then fade an LED with PWM.',
+    parts:[
+      {title:'Analog vs. Digital',body:`Digital pins only know HIGH or LOW. Analog pins (A0–A5) sense a range: <code>analogRead(A0)</code> returns 0–1023.`},
+      {title:'PWM — faking analog output',body:`<code>analogWrite(pin, value)</code> flickers a pin so fast it looks dimmed. Value ranges 0–255. Only works on pins marked with <strong>~</strong>. Use <code>map(value, 0, 1023, 0, 255)</code> to rescale a potentiometer reading into a brightness value.`},
+    ],
+    code:`int potPin = A0;\nint ledPin = 9;   // must be a PWM (~) pin\n\nvoid setup() {\n  pinMode(ledPin, OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  int potValue = analogRead(potPin);              // 0-1023\n  int brightness = map(potValue, 0, 1023, 0, 255); // 0-255\n  analogWrite(ledPin, brightness);\n  Serial.print("Pot: ");\n  Serial.print(potValue);\n  Serial.print("  Brightness: ");\n  Serial.println(brightness);\n  delay(100);\n}`,
+    tryIt:'Drag the potentiometer slider in its Properties panel while the sketch runs.'
+  },
+  {
+    id:'l6', num:'06', icon:'🔁', level:'intermediate', title:'Making Decisions & Loops',
+    objective:'Use a for loop to cycle three LEDs in sequence, like a simple traffic light.',
+    parts:[
+      {title:'The for loop',body:`<code>for (int i = 0; i &lt; 10; i++) { ... }</code> has three parts: starting value, continue-while condition, what to do after each repeat.`},
+      {title:'The while loop',body:`<code>while (condition) { ... }</code> repeats as long as a condition stays true — useful when you don't know in advance how many times you'll repeat.`},
+      {title:'Combining with if / else if',body:`Chain conditions: <code>if (a) {...} else if (b) {...} else {...}</code> — checked in order, first true wins.`},
+    ],
+    code:`int red = 13, yellow = 12, green = 11;\n\nvoid setup() {\n  pinMode(red, OUTPUT);\n  pinMode(yellow, OUTPUT);\n  pinMode(green, OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  int pins[3] = {red, yellow, green};\n  for (int i = 0; i < 3; i++) {\n    digitalWrite(pins[i], HIGH);\n    Serial.println(i);\n    delay(400);\n    digitalWrite(pins[i], LOW);\n  }\n}`,
+    tryIt:"Change i < 3 to i < 2 and predict what will happen before pressing Run."
+  },
+  {
+    id:'l7', num:'07', icon:'🔧', level:'intermediate', title:'Writing Your Own Functions',
+    objective:'Write a custom function that plays a tone, then call it from loop().',
+    parts:[
+      {title:'Why write your own functions?',body:`Breaking repeated actions into named functions keeps code organized. <code>void beep(int freq) { tone(8, freq, 200); }</code> — <code>void</code> means no return value, <code>beep</code> is the name, <code>(int freq)</code> is the parameter.`},
+      {title:'Calling it',body:`Once defined, call it like any built-in: <code>beep(440);</code> plays a 440Hz tone. You can call the same function many times without copying code.`},
+    ],
+    code:`int buzzerPin = 8;\n\nvoid setup() {\n  pinMode(buzzerPin, OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  beep(440);\n  delay(300);\n  beep(880);\n  delay(600);\n}\n\nvoid beep(int freq) {\n  tone(buzzerPin, freq, 200);\n  Serial.print("Beeping at ");\n  Serial.println(freq);\n}`,
+    tryIt:'Add a second parameter int duration to beep() so each call can choose how long the tone lasts.'
+  },
+  {
+    id:'l8', num:'08', icon:'📋', level:'advanced', title:'Arrays — Controlling Multiple Outputs',
+    objective:'Store LED pins in an array and loop through it to create a chase/scanner pattern.',
+    parts:[
+      {title:'What is an array?',body:`<code>int ledPins[] = {13, 12, 11};</code> stores a list under one name. Access each item with square brackets starting at index 0: <code>ledPins[0]</code> is the first item.`},
+      {title:'Looping through an array',body:`Combine a for loop with the array's length: <code>for (int i = 0; i &lt; numLeds; i++) { digitalWrite(ledPins[i], HIGH); }</code> — no hard-coded count needed. Arrays power LED chase patterns, sensor logging, and multi-output robotics.`},
+    ],
+    code:`int ledPins[] = {13, 12, 11};\nint numLeds = 3;\n\nvoid setup() {\n  for (int i = 0; i < numLeds; i++) {\n    pinMode(ledPins[i], OUTPUT);\n  }\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  for (int i = 0; i < numLeds; i++) {\n    digitalWrite(ledPins[i], HIGH);\n    Serial.print("Lit pin: ");\n    Serial.println(ledPins[i]);\n    delay(200);\n    digitalWrite(ledPins[i], LOW);\n  }\n}`,
+    tryIt:'Add a 4th LED to the array and update numLeds — no other code changes.'
+  },
+  {
+    id:'l9', num:'09', icon:'🌡️', level:'advanced', title:'Sensors & Libraries',
+    objective:'Place a DHT11 sensor and read live temperature and humidity values using a library.',
+    parts:[
+      {title:'What is a library?',body:`A library is pre-written code that handles a tricky sensor for you. Add it with <code>#include &lt;DHT.h&gt;</code> at the very top of the sketch, before <code>setup()</code>.`},
+      {title:'Creating an object',body:`Most sensor libraries use an object: <code>DHT dht(4, DHT11);</code> creates a "dht" object on pin 4. Call its methods: <code>dht.readTemperature()</code> and <code>dht.readHumidity()</code>. This same pattern — include, create, call — works for ultrasonic sensors, LCD screens, servo motors, and more.`},
+    ],
+    code:`#include <DHT.h>\nDHT dht(4, DHT11);\n\nvoid setup() {\n  dht.begin();\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  float temp = dht.readTemperature();\n  float humid = dht.readHumidity();\n  Serial.print("Temp: ");\n  Serial.print(temp);\n  Serial.print("C  Humidity: ");\n  Serial.print(humid);\n  Serial.println("%");\n  delay(1000);\n}`,
+    tryIt:'Drag the DHT11 temperature slider in its Properties panel while the sketch runs.'
+  },
+  {
+    id:'l10', num:'10', icon:'🚦', level:'capstone', title:'Build a Traffic Light Controller',
+    objective:'Combine variables, a custom function, and timed sequencing to build a real 3-light traffic controller.',
+    parts:[
+      {title:'Putting it all together',body:`This capstone uses everything from this course: const pin variables, a custom <code>changeLight()</code> function, and careful sequencing with <code>delay()</code>.`},
+      {title:'Your challenge',body:`<ul><li>Wire 3 LEDs (red, yellow, green) + resistors</li><li>Write a function that turns off all three, then turns on just one</li><li>Sequence: Red (3s) → Green (3s) → Yellow (1s) → repeat</li><li>Print the current color to Serial each time it changes</li></ul>`},
+    ],
+    code:`const int redPin = 13, yellowPin = 12, greenPin = 11;\n\nvoid setup() {\n  pinMode(redPin, OUTPUT);\n  pinMode(yellowPin, OUTPUT);\n  pinMode(greenPin, OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  changeLight(redPin, "RED", 3000);\n  changeLight(greenPin, "GREEN", 3000);\n  changeLight(yellowPin, "YELLOW", 1000);\n}\n\nvoid changeLight(int pin, String name, int duration) {\n  digitalWrite(redPin, LOW);\n  digitalWrite(yellowPin, LOW);\n  digitalWrite(greenPin, LOW);\n  digitalWrite(pin, HIGH);\n  Serial.println(name);\n  delay(duration);\n}`,
+    tryIt:'This lesson is complete once you\'ve placed 3+ components, drawn at least one wire, and pressed Run.'
+  },
+  // ── BONUS TUTORIALS ──────────────────────────────────
+  {
+    id:'b1', num:'★', icon:'🌈', level:'bonus', title:'RGB LED — Full Color Control',
+    objective:'Wire an RGB LED and mix red, green, and blue brightness to produce any color.',
+    parts:[
+      {title:'How an RGB LED works',body:`An RGB LED has four legs: one common cathode (GND) and three anodes — one each for <strong>Red</strong>, <strong>Green</strong>, and <strong>Blue</strong>. By controlling the brightness of each channel with PWM, you mix them like paint to produce any color. Wire the R pin to <code>~9</code>, G to <code>~10</code>, B to <code>~11</code> through 220Ω resistors.`},
+      {title:'Setting a color',body:`Use <code>analogWrite(pin, 0–255)</code> on each channel. <code>255</code> is full brightness, <code>0</code> is off.<ul><li>Red only → <code>setColor(255, 0, 0)</code></li><li>Yellow → <code>setColor(255, 150, 0)</code></li><li>White → <code>setColor(255, 255, 255)</code></li><li>Off → <code>setColor(0, 0, 0)</code></li></ul>`},
+      {title:'Smooth color cycling',body:`Incrementing R, G, B values slowly in a loop creates a smooth rainbow fade. Wrapping each channel's logic in its own function keeps the code clean and reusable for future LED projects.`},
+    ],
+    code:`int redPin = 9;    // must be PWM (~) pins\nint greenPin = 10;\nint bluePin = 11;\n\nvoid setup() {\n  pinMode(redPin,   OUTPUT);\n  pinMode(greenPin, OUTPUT);\n  pinMode(bluePin,  OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  // Cycle through rainbow\n  setColor(255, 0,   0);    delay(600); // Red\n  setColor(255, 150, 0);    delay(600); // Orange\n  setColor(255, 255, 0);    delay(600); // Yellow\n  setColor(0,   255, 0);    delay(600); // Green\n  setColor(0,   0,   255);  delay(600); // Blue\n  setColor(148, 0,   211);  delay(600); // Violet\n  setColor(0,   0,   0);    delay(400); // Off\n}\n\nvoid setColor(int r, int g, int b) {\n  analogWrite(redPin,   r);\n  analogWrite(greenPin, g);\n  analogWrite(bluePin,  b);\n  Serial.print("R:");\n  Serial.print(r);\n  Serial.print(" G:");\n  Serial.print(g);\n  Serial.print(" B:");\n  Serial.println(b);\n}`,
+    tryIt:'Change the delay values or add your own colors. Try setColor(128, 0, 128) — what color is that?'
+  }
+];
+
+let clActiveLessonId = null;
+let clDoneLessons = new Set();
+let clCustomLessons = [];      // teacher-added lessons from Firestore
+let clAllLessons = [];         // CODE_LESSONS + clCustomLessons merged & sorted
+let clEditingLessonId = null;  // id of lesson being edited (null = new)
+
+// ── MERGE & SORT ──────────────────────────────────────────────────────────────
+function clBuildAllLessons(){
+  clAllLessons = [...CODE_LESSONS, ...clCustomLessons];
+  clAllLessons.sort((a,b)=>{
+    const oa = Number(a.order ?? a.num ?? 999);
+    const ob = Number(b.order ?? b.num ?? 999);
+    return oa - ob || (a.title||'').localeCompare(b.title||'');
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function initCodeLessons(){
+  // Show teacher bar if teacher
+  const bar = document.getElementById('clTeacherBar');
+  if(bar && currentUser && currentUser.role==='teacher'){
+    bar.classList.remove('hidden');
+    bar.style.removeProperty('display');
+  }
+  // Load done-progress from localStorage
+  try {
+    const saved = localStorage.getItem('cl_done_'+(currentUser&&currentUser.id||'guest'));
+    if(saved) clDoneLessons = new Set(JSON.parse(saved));
+  } catch(e){}
+  // Load teacher-added lessons from Firestore
+  await loadCustomLessons();
+}
+
+async function loadCustomLessons(){
+  try {
+    const snap = await db.collection('code_lessons').orderBy('order').get();
+    clCustomLessons = snap.docs.map(d=>({...d.data(), id:d.id, _custom:true}));
+  } catch(e){
+    clCustomLessons = [];
+  }
+  clBuildAllLessons();
+  renderClNav();
+  const first = clAllLessons.find(l=>!clDoneLessons.has(l.id)) || clAllLessons[0];
+  if(first) openLesson(first.id);
+}
+
+// ── NAV SIDEBAR ───────────────────────────────────────────────────────────────
+function renderClNav(){
+  const nav = document.getElementById('clLessonNav'); if(!nav) return;
+  const isTeacher = currentUser && currentUser.role==='teacher';
+  nav.innerHTML = clAllLessons.map(l=>`
+    <button class="lesson-nav-item ${clActiveLessonId===l.id?'active':''} ${clDoneLessons.has(l.id)?'done':''}"
+      onclick="openLesson('${l.id}')">
+      <span class="lni-num">${l.num||'+'}</span>
+      <span class="lni-title">${l.icon||'💡'} ${l.title}</span>
+      <span class="lni-check">${clDoneLessons.has(l.id)?'✓':''}</span>
+    </button>
+  `).join('');
+  const pct = Math.round(clDoneLessons.size / Math.max(clAllLessons.length,1) * 100);
+  const fill = document.getElementById('clProgressFill');
+  if(fill) fill.style.width = pct+'%';
+  const lbl = document.getElementById('clProgressLabel');
+  if(lbl) lbl.textContent = clDoneLessons.size+' / '+clAllLessons.length;
+}
+
+// ── OPEN LESSON ───────────────────────────────────────────────────────────────
+function openLesson(id){
+  const l = clAllLessons.find(x=>x.id===id); if(!l) return;
+  clActiveLessonId = id;
+  const idx = clAllLessons.indexOf(l);
+  const prev = clAllLessons[idx-1];
+  const next = clAllLessons[idx+1];
+  const isTeacher = currentUser && currentUser.role==='teacher';
+
+  const content = document.getElementById('clLessonContent'); if(!content) return;
+  content.innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <span class="lesson-badge ${l.level}">${l.level==='bonus'?'⭐ Bonus':l.level.charAt(0).toUpperCase()+l.level.slice(1)}</span>
+      ${isTeacher?`<div style="display:flex;gap:8px;">
+        <button class="btn-xs" style="background:var(--blue-light);color:var(--blue);border:1px solid var(--blue);" onclick="openLessonModal('${l.id}')">✏️ Edit</button>
+        ${l._custom?`<button class="btn-xs red" onclick="deleteCustomLesson('${l.id}')">🗑 Delete</button>`:''}
+      </div>`:''}
+    </div>
+    <div class="lesson-title">${l.icon||''} ${l.title}</div>
+    <div class="lesson-objective"><strong>🎯 Objective</strong> ${l.objective}</div>
+    ${(l.parts||[]).map(p=>`
+      <div class="lesson-part">
+        <div class="lesson-part-title">${p.title}</div>
+        <div>${p.body}</div>
+      </div>
+    `).join('')}
+    ${l.code?`
+    <div class="code-block">
+      <div class="code-block-label">Starter Code</div>
+      <button class="code-copy-btn" onclick="clCopyCode(this)">Copy</button>
+      <pre id="clCodePre-${l.id}">${escapeHtml(l.code)}</pre>
+    </div>`:''}
+    ${l.tryIt?`<div class="try-it-box">🔧 <span><strong>Try it:</strong> ${l.tryIt}</span></div>`:''}
+    <div class="lesson-nav-btns">
+      <div>
+        ${prev?`<button class="btn btn-secondary" onclick="openLesson('${prev.id}')">← ${prev.icon||''} ${prev.title}</button>`:'<span></span>'}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ${clDoneLessons.has(l.id)?'btn-secondary':'btn-primary'}" onclick="clMarkDone('${l.id}')">
+          ${clDoneLessons.has(l.id)?'✓ Completed':'Mark as Done ✓'}
+        </button>
+        ${next?`<button class="btn btn-primary" onclick="openLesson('${next.id}')">Next: ${next.icon||''} ${next.title} →</button>`:''}
+      </div>
+    </div>
+  `;
+  renderClNav();
+}
+
+// ── MARK DONE ─────────────────────────────────────────────────────────────────
+function clMarkDone(id){
+  clDoneLessons.add(id);
+  try {
+    localStorage.setItem('cl_done_'+(currentUser&&currentUser.id||'guest'), JSON.stringify([...clDoneLessons]));
+  } catch(e){}
+  const l = clAllLessons.find(x=>x.id===id);
+  const idx = clAllLessons.indexOf(l);
+  const next = clAllLessons[idx+1];
+  openLesson(id);
+  showToast('Lesson marked complete! 🎉','success');
+  if(next) setTimeout(()=>openLesson(next.id), 800);
+}
+
+// ── COPY CODE ─────────────────────────────────────────────────────────────────
+function clCopyCode(btn){
+  const pre = btn.parentElement.querySelector('pre');
+  if(!pre) return;
+  navigator.clipboard.writeText(pre.textContent).then(()=>{
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy', 1800);
+  }).catch(()=>{ btn.textContent='Copy'; });
+}
+
+// ── ADD / EDIT LESSON MODAL ───────────────────────────────────────────────────
+function openLessonModal(id){
+  clEditingLessonId = id || null;
+  const modal = document.getElementById('lessonModal'); if(!modal) return;
+  document.getElementById('lessonModalTitle').textContent = id ? 'Edit Lesson' : 'Add Lesson';
+  document.getElementById('lessonSaveBtn').textContent = id ? 'Save Changes' : 'Save Lesson';
+
+  // Reset form
+  document.getElementById('lsnTitle').value = '';
+  document.getElementById('lsnIcon').value = '';
+  document.getElementById('lsnLevel').value = 'beginner';
+  document.getElementById('lsnOrder').value = clAllLessons.length + 1;
+  document.getElementById('lsnObjective').value = '';
+  document.getElementById('lsnCode').value = '';
+  document.getElementById('lsnTryIt').value = '';
+  document.getElementById('lessonPartsBuilder').innerHTML = '';
+
+  if(id){
+    const l = clAllLessons.find(x=>x.id===id);
+    if(l){
+      document.getElementById('lsnTitle').value = l.title||'';
+      document.getElementById('lsnIcon').value = l.icon||'';
+      document.getElementById('lsnLevel').value = l.level||'beginner';
+      document.getElementById('lsnOrder').value = l.order ?? l.num ?? 1;
+      document.getElementById('lsnObjective').value = l.objective||'';
+      document.getElementById('lsnCode').value = l.code||'';
+      document.getElementById('lsnTryIt').value = l.tryIt||'';
+      (l.parts||[]).forEach(p=>addLessonPart(p));
+    }
+  } else {
+    addLessonPart(); // start with one empty part
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closeLessonModal(){
+  const modal = document.getElementById('lessonModal');
+  if(modal) modal.classList.add('hidden');
+  clEditingLessonId = null;
+}
+
+function addLessonPart(p){
+  const builder = document.getElementById('lessonPartsBuilder'); if(!builder) return;
+  const idx = builder.children.length;
+  const div = document.createElement('div');
+  div.className = 'qb-block';
+  div.style.cssText = 'display:flex;flex-direction:column;gap:8px;position:relative;';
+  div.innerHTML = `
+    <button type="button" onclick="this.closest('.qb-block').remove()" style="position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;font-size:1rem;color:var(--muted);" title="Remove part">✕</button>
+    <div class="form-field" style="margin:0;">
+      <label style="font-size:0.72rem;">Part Title</label>
+      <input class="lsn-part-title" value="${escapeHtml(p?.title||'')}" placeholder="e.g. How it works"/>
+    </div>
+    <div class="form-field" style="margin:0;">
+      <label style="font-size:0.72rem;">Body (HTML allowed)</label>
+      <textarea class="lsn-part-body" style="min-height:80px;" placeholder="Explanation text…">${p?.body||''}</textarea>
+    </div>
+  `;
+  builder.appendChild(div);
+}
+
+async function saveLesson(e){
+  e.preventDefault();
+  const btn = document.getElementById('lessonSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const parts = [...document.querySelectorAll('#lessonPartsBuilder .qb-block')].map(div=>({
+    title: div.querySelector('.lsn-part-title').value.trim(),
+    body:  div.querySelector('.lsn-part-body').value.trim()
+  })).filter(p=>p.title||p.body);
+
+  const data = {
+    title:     document.getElementById('lsnTitle').value.trim(),
+    icon:      document.getElementById('lsnIcon').value.trim() || '💡',
+    level:     document.getElementById('lsnLevel').value,
+    order:     Number(document.getElementById('lsnOrder').value) || 99,
+    objective: document.getElementById('lsnObjective').value.trim(),
+    code:      document.getElementById('lsnCode').value,
+    tryIt:     document.getElementById('lsnTryIt').value.trim(),
+    parts,
+    createdBy: currentUser?.id,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    if(clEditingLessonId){
+      // editing a custom lesson
+      const existing = clAllLessons.find(x=>x.id===clEditingLessonId);
+      if(existing && existing._custom){
+        await db.collection('code_lessons').doc(clEditingLessonId).update(data);
+      } else {
+        // editing a hardcoded lesson → save override as custom
+        await db.collection('code_lessons').doc(clEditingLessonId).set({...data, _overrideOf: clEditingLessonId});
+      }
+      showToast('Lesson updated! ✏️','success');
+    } else {
+      await db.collection('code_lessons').add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+      showToast('Lesson added! 🎉','success');
+    }
+    closeLessonModal();
+    await loadCustomLessons();
+  } catch(err){
+    showToast('Could not save lesson: '+(err.message||err),'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = clEditingLessonId ? 'Save Changes' : 'Save Lesson';
+  }
+  return false;
+}
+
+async function deleteCustomLesson(id){
+  if(!confirm('Delete this lesson? This cannot be undone.')) return;
+  try {
+    await db.collection('code_lessons').doc(id).delete();
+    showToast('Lesson deleted.','success');
+    clActiveLessonId = null;
+    await loadCustomLessons();
+  } catch(e){ showToast('Could not delete: '+(e.message||e),'error'); }
 }
 </script>
 </body>
