@@ -102,6 +102,32 @@
   #page-code-playground > div:last-child { flex-direction: column; }
   #page-code-playground > div:last-child > div:last-child { width: 100%; min-height: 200px; }
 }
+
+/* ══ NEW FEATURES: Global Search, Announcement Board, Rubric Builder ══ */
+.gsearch-wrap{position:relative;}
+.gsearch-panel{position:absolute;top:calc(100% + 8px);left:0;width:360px;max-width:80vw;background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);max-height:420px;overflow-y:auto;z-index:300;display:none;padding:6px 0;}
+.gsearch-panel.open{display:block;}
+.gsearch-cat-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:9px 14px 4px;}
+.gsearch-item{display:flex;align-items:flex-start;gap:10px;padding:8px 14px;cursor:pointer;transition:background var(--transition);}
+.gsearch-item:hover{background:var(--surface);}
+.gsearch-item-icon{font-size:1rem;flex-shrink:0;width:24px;text-align:center;}
+.gsearch-item-title{font-size:var(--text-sm);font-weight:600;color:var(--ink);}
+.gsearch-item-sub{font-size:0.72rem;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gsearch-empty{padding:18px 14px;font-size:var(--text-sm);color:var(--muted);text-align:center;}
+.mob-search-bar{display:none;background:var(--white);border-bottom:1px solid var(--border);padding:0;overflow:visible;position:fixed;top:var(--mob-header-h);left:0;right:0;z-index:190;}
+.mob-search-bar.open{display:block;padding:10px 12px;}
+.mob-search-bar.open{display:block;padding:10px 12px;}
+@media(max-width:768px){ .gsearch-wrap{ display:none; } }
+
+.ann-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;gap:12px;transition:box-shadow .15s;}
+.ann-card:hover{box-shadow:var(--shadow);}
+.ann-card.pinned{border-color:var(--gold);background:var(--gold-bg);}
+.ann-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;background:var(--surface);}
+.ann-card-icon.quiz{background:var(--blue-light);}
+.ann-card-icon.reminder{background:var(--gold-bg);}
+.ann-pin-tag{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gold);display:inline-flex;align-items:center;gap:3px;}
+.rb-criterion-row{display:flex;gap:8px;align-items:center;}
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:16px;}
 body{font-family:var(--font-body);background:var(--surface);color:var(--ink);line-height:1.5;min-height:100vh;transition:background .25s,color .25s;}
@@ -1704,6 +1730,10 @@ void main(){
           <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
           <span class="nav-item-label">Schedule</span>
         </button>
+        <button class="nav-item" data-page="announcements" onclick="goTo('announcements')">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11 16.5L7 19v-5"/></svg></span>
+          <span class="nav-item-label">Announcements</span>
+        </button>
         <button class="nav-item" data-page="attendance" onclick="goTo('attendance')">
           <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg></span>
           <span class="nav-item-label">My Attendance</span>
@@ -1776,6 +1806,10 @@ void main(){
           <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
           <span class="nav-item-label">Schedule</span>
         </button>
+        <button class="nav-item" data-page="announcements" onclick="goTo('announcements')">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11 16.5L7 19v-5"/></svg></span>
+          <span class="nav-item-label">Announcements</span>
+        </button>
         <button class="nav-item" data-page="attendance" onclick="goTo('attendance')">
           <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg></span>
           <span class="nav-item-label">Attendance</span>
@@ -1838,6 +1872,9 @@ void main(){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
     <span class="mob-header-title" id="mobTitle">My Dashboard</span>
+    <button class="topbar-action" onclick="toggleMobSearch()" style="padding:5px 9px;min-height:32px;" aria-label="Search">
+      <span>🔍</span>
+    </button>
     <button class="topbar-action" onclick="toggleTheme()" style="padding:5px 9px;min-height:32px;" aria-label="Toggle theme">
       <span id="mobThemeIcon">☾</span>
     </button>
@@ -1845,6 +1882,13 @@ void main(){
       <span>🚪</span>
     </button>
   </header>
+  <div class="mob-search-bar" id="mobSearchBar">
+    <div class="search-input" style="width:100%;">
+      <span>🔍</span>
+      <input id="gsearchInputMob" placeholder="Search the portal…" autocomplete="off" oninput="gSearchInput('gsearchInputMob','gsearchPanelMob')" onfocus="gSearchInput('gsearchInputMob','gsearchPanelMob')"/>
+    </div>
+    <div class="gsearch-panel" id="gsearchPanelMob" style="position:static;width:100%;margin-top:8px;"></div>
+  </div>
 
   <!-- ═══ MAIN CONTENT ═══ -->
   <div class="main-content">
@@ -1852,6 +1896,13 @@ void main(){
     <!-- TOPBAR -->
     <div class="topbar">
       <span class="topbar-title" id="topbarTitle">My Dashboard</span>
+      <div class="gsearch-wrap" id="gsearchWrap">
+        <div class="search-input" style="min-width:0;width:230px;">
+          <span>🔍</span>
+          <input id="gsearchInput" placeholder="Search the portal…" autocomplete="off" oninput="gSearchInput('gsearchInput','gsearchPanel')" onfocus="gSearchInput('gsearchInput','gsearchPanel')"/>
+        </div>
+        <div class="gsearch-panel" id="gsearchPanel"></div>
+      </div>
       <div class="topbar-spacer"></div>
       <button class="topbar-action" onclick="toggleTheme()">
         <span id="themeIcon">☾</span> <span id="themeLabel">Dark</span>
@@ -2586,6 +2637,7 @@ void main(){
         <button class="quiz-tab active" onclick="switchManageTab(this,'tab-manage-modules')">📦 Modules</button>
         <button class="quiz-tab" onclick="switchManageTab(this,'tab-manage-activities')">🧠 Quizzes & Activities</button>
         <button class="quiz-tab" onclick="switchManageTab(this,'tab-manage-simtasks')">🔌 Simulator Tasks</button>
+        <button class="quiz-tab" onclick="switchManageTab(this,'tab-manage-rubrics')">📐 Rubrics</button>
       </div>
 
       <!-- TAB: MANAGE MODULES -->
@@ -2686,6 +2738,24 @@ void main(){
           </div>
         </div>
       </div>
+      <!-- TAB: MANAGE RUBRICS -->
+      <div id="tab-manage-rubrics" class="hidden">
+        <div class="card">
+          <div class="section-head" style="margin-bottom:14px;">
+            <h2 style="font-size:var(--text-lg);">Reusable Rubrics</h2>
+            <button class="btn btn-primary" onclick="openRubricModal()">+ New Rubric</button>
+          </div>
+          <p class="card-sub" style="margin-bottom:14px;">Build a rubric once, then attach it to any quiz or activity from the editor — and reference it while grading.</p>
+          <div class="tbl-wrap">
+            <table class="dtbl">
+              <thead><tr><th>Title</th><th>Criteria</th><th>Total Points</th><th>Used By</th><th>Actions</th></tr></thead>
+              <tbody id="manageRubricsTbody">
+                <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   <div class="modal-overlay hidden" id="moduleModal">
     <div class="modal-panel">
@@ -2768,6 +2838,11 @@ void main(){
               <select id="actModule"><option value="">— None —</option></select>
             </div>
           </div>
+          <div class="form-field">
+            <label for="actRubric">Grading Rubric (optional)</label>
+            <select id="actRubric"><option value="">— None —</option></select>
+            <span style="font-size:0.7rem;color:var(--muted);margin-top:3px;">Attach a saved rubric so it shows up as a scoring reference in the Gradebook. Build rubrics in the 📐 Rubrics tab.</span>
+          </div>
           <div class="form-grid-2">
             <div class="form-field">
               <label for="actStatus">Status *</label>
@@ -2816,6 +2891,56 @@ void main(){
           <button type="submit" class="btn btn-primary" id="activitySaveBtn">Save Quiz</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL: ADD/EDIT RUBRIC ═══ -->
+  <div class="modal-overlay hidden" id="rubricModal">
+    <div class="modal-panel" style="max-width:600px;">
+      <div class="modal-header">
+        <h3 id="rubricModalTitle">New Rubric</h3>
+        <button class="modal-close" onclick="closeRubricModal()">✕</button>
+      </div>
+      <form id="rubricForm" onsubmit="return saveRubric(event)">
+        <div class="modal-body">
+          <div class="form-field">
+            <label for="rbTitle">Rubric Title *</label>
+            <input id="rbTitle" placeholder="e.g. Circuit Build Quality" required/>
+          </div>
+          <div class="form-field">
+            <label for="rbDescription">Description (optional)</label>
+            <textarea id="rbDescription" placeholder="What is this rubric for, and how should it be used?" style="min-height:56px;"></textarea>
+          </div>
+          <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:14px;display:flex;flex-direction:column;gap:10px;">
+            <div class="section-head" style="margin-bottom:0;">
+              <h2 style="font-size:var(--text-base);">Criteria</h2>
+              <span class="card-sub" id="rbTotalLabel">0 pts defined</span>
+            </div>
+            <div id="rbCriteriaWrap" style="display:flex;flex-direction:column;gap:8px;"></div>
+            <button type="button" class="qb-add-btn" onclick="addRubricCriterion()">+ Add Criterion</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-xs red hidden" id="rbDeleteBtn" onclick="deleteRubric()">Delete Rubric</button>
+          <div style="flex:1;"></div>
+          <button type="button" class="btn btn-secondary" onclick="closeRubricModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="rbSaveBtn">Save Rubric</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL: VIEW RUBRIC (read-only reference) ═══ -->
+  <div class="modal-overlay hidden" id="rubricViewModal">
+    <div class="modal-panel" style="max-width:520px;">
+      <div class="modal-header">
+        <h3 id="rbViewTitle">Rubric</h3>
+        <button class="modal-close" onclick="closeRubricViewModal()">✕</button>
+      </div>
+      <div class="modal-body" id="rbViewBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeRubricViewModal()">Close</button>
+      </div>
     </div>
   </div>
 
@@ -3408,6 +3533,77 @@ void loop() {
 </div>
 
 <!-- ═══════════════════════════
+     PAGE: ANNOUNCEMENT BOARD
+═══════════════════════════ -->
+<div class="page page-transition hidden" id="page-announcements">
+  <div class="page-header">
+    <h1>Announcements 📢</h1>
+    <p id="annPageSub">Everything posted to the class, in one place.</p>
+  </div>
+
+  <!-- TEACHER: composer -->
+  <div id="annComposerCard" class="card hidden" style="margin-bottom:18px;">
+    <div class="card-title" style="margin-bottom:10px;" id="annComposerTitle">Post an Announcement</div>
+    <div class="form-grid-2">
+      <div class="form-field">
+        <label for="annTitle">Title (optional)</label>
+        <input id="annTitle" placeholder="e.g. No session this Friday"/>
+      </div>
+      <div class="form-field">
+        <label for="annType">Type</label>
+        <select id="annType">
+          <option value="announce">📢 General</option>
+          <option value="quiz">📝 Quiz Alert</option>
+          <option value="reminder">⏰ Reminder</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-field">
+      <label for="annBody">Message *</label>
+      <textarea id="annBody" placeholder="Type your announcement…" rows="3"></textarea>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-field" style="margin-bottom:0;">
+        <label for="annExpiresIn">Expires in (optional)</label>
+        <select id="annExpiresIn">
+          <option value="">No expiration</option>
+          <option value="1">1 hour</option>
+          <option value="3">3 hours</option>
+          <option value="6">6 hours</option>
+          <option value="12">12 hours</option>
+          <option value="24">24 hours (1 day)</option>
+          <option value="72">3 days</option>
+          <option value="168">7 days</option>
+        </select>
+        <span style="font-size:0.7rem;color:var(--muted);margin-top:3px;">It drops off the board and bell automatically once this time is up. Leave on "No expiration" to keep it up indefinitely.</span>
+      </div>
+      <label style="display:flex;align-items:center;gap:7px;font-size:var(--text-sm);color:var(--slate);cursor:pointer;align-self:end;padding-bottom:9px;">
+        <input type="checkbox" id="annPin" style="width:16px;height:16px;"/> 📌 Pin to top
+      </label>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin-top:4px;">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline hidden" id="annCancelBtn" type="button" onclick="cancelAnnEdit()">Cancel</button>
+        <button class="btn btn-primary" id="annSaveBtn" type="button" onclick="saveBoardAnnouncement()">Post Announcement</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+    <div class="filter-pills" id="annFilterPills">
+      <button class="filter-pill active" onclick="setAnnFilter('all')">All</button>
+      <button class="filter-pill" onclick="setAnnFilter('announce')">📢 General</button>
+      <button class="filter-pill" onclick="setAnnFilter('quiz')">📝 Quiz Alerts</button>
+      <button class="filter-pill" onclick="setAnnFilter('reminder')">⏰ Reminders</button>
+    </div>
+  </div>
+
+  <div id="annBoardList" style="display:flex;flex-direction:column;gap:12px;">
+    <p class="card-sub">Loading announcements…</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
      PAGE: ATTENDANCE TRACKER
 ═══════════════════════════ -->
 <div class="page page-transition hidden" id="page-attendance">
@@ -3462,6 +3658,7 @@ void loop() {
           <select id="gbFilterActivity" onchange="renderGradebook()" style="padding:7px 10px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);">
             <option value="">All Activities</option>
           </select>
+          <button class="btn btn-outline hidden" id="gbViewRubricBtn" style="font-size:var(--text-sm);padding:6px 14px;" onclick="gbViewRubric()">📐 View Rubric</button>
           <button class="btn btn-outline" style="font-size:var(--text-sm);padding:6px 14px;" onclick="exportGradebookCSV()">⬇ Export CSV</button>
         </div>
       </div>
@@ -4268,6 +4465,12 @@ service cloud.firestore {
       allow write: if isTeacher();
     }
 
+    // Rubrics — teachers create/manage reusable grading rubrics, everyone authenticated reads
+    match /rubrics/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+
     // Squads — teachers create/delete/manage; any signed-in student can
     // update ONLY the members/memberNames fields to join or leave a squad
     match /squads/{docId} {
@@ -4992,12 +5195,13 @@ function setTeacherGradeFilter(g){ teacherGradeFilter=g; renderTeacherGradeFilte
 // MANAGE CONTENT — TAB SWITCH
 // ══════════════════════════════════
 function switchManageTab(btn, tabId){
-  ['tab-manage-modules','tab-manage-activities','tab-manage-simtasks'].forEach(t=>{
+  ['tab-manage-modules','tab-manage-activities','tab-manage-simtasks','tab-manage-rubrics'].forEach(t=>{
     const el=document.getElementById(t); if(el) el.classList.add('hidden');
   });
   const target=document.getElementById(tabId); if(target) target.classList.remove('hidden');
   document.querySelectorAll('.quiz-tab[onclick*="switchManageTab"]').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+  if(tabId==='tab-manage-rubrics' && !rubricsCache.length) loadRubrics();
 }
 
 // ══════════════════════════════════
@@ -5010,7 +5214,7 @@ let editingActivityId = null;
 let questionBlocks = [];
 
 async function loadManageContent(){
-  await Promise.all([loadModulesFromDB(), loadActivitiesFromDB()]);
+  await Promise.all([loadModulesFromDB(), loadActivitiesFromDB(), loadRubrics()]);
 }
 
 async function loadModulesFromDB(){
@@ -5201,6 +5405,7 @@ function renderManageActivities(){
         <button class="btn-xs" onclick="openSubmissionsModal('${a.id}')">👁 View</button>
         <button class="btn-xs" onclick="openActivityModal('${a.id}')">Edit</button>
         <button class="btn-xs" onclick="duplicateActivity('${a.id}')">⧉ Duplicate</button>
+        ${a.rubricId?`<button class="btn-xs" onclick="openRubricViewModal('${a.rubricId}')" title="View attached rubric">📐 Rubric</button>`:''}
         <button class="btn-xs red" onclick="deleteActivity('${a.id}')">Delete</button>
       </div></td>
     </tr>
@@ -5821,6 +6026,9 @@ function openActivityModal(id){
   // Populate module selector
   const sel=document.getElementById('actModule');
   sel.innerHTML='<option value="">— None —</option>'+modulesCache.map(m=>`<option value="${m.id}">${escapeHtml(m.title)}</option>`).join('');
+  // Populate rubric selector
+  const rsel=document.getElementById('actRubric');
+  if(rsel) rsel.innerHTML='<option value="">— None —</option>'+rubricsCache.map(r=>`<option value="${r.id}">${escapeHtml(r.title)} (${r.totalPoints||0} pts)</option>`).join('');
   if(id){
     const a=activitiesCache.find(x=>x.id===id)||{};
     document.getElementById('actTitle').value=a.title||'';
@@ -5829,6 +6037,7 @@ function openActivityModal(id){
     document.getElementById('actStatus').value=a.status||'live';
     document.getElementById('actTimeLimit').value=a.timeLimit||15;
     document.getElementById('actModule').value=a.moduleId||'';
+    if(rsel) rsel.value=a.rubricId||'';
     toggleActivityDueDateField();
     if(a.openAt) document.getElementById('actOpenAt').value=a.openAt;
     if(a.closeAt) document.getElementById('actCloseAt').value=a.closeAt;
@@ -5910,6 +6119,7 @@ async function saveActivity(e){
     icon:document.getElementById('actIcon').value.trim()||'⚡',
     category:document.getElementById('actCategory').value.trim(),
     moduleId:document.getElementById('actModule').value||'',
+    rubricId:document.getElementById('actRubric')?document.getElementById('actRubric').value||'':'',
     status:document.getElementById('actStatus').value,
     timeLimit:parseInt(document.getElementById('actTimeLimit').value)||15,
     openAt:document.getElementById('actOpenAt').value||'',
@@ -5964,6 +6174,202 @@ async function duplicateActivity(id){
     showToast('Quiz duplicated — edit and set it live when ready.','success');
     await loadActivitiesFromDB();
   } catch(e){ showToast('Could not duplicate: '+(e.message||e),'error'); }
+}
+
+// ══════════════════════════════════════════════════════════════
+// FEATURE: RUBRIC BUILDER (standalone, reusable, attach to any quiz)
+// Collection: rubrics — {title, description, criteria:[{name,max}], totalPoints}
+// ══════════════════════════════════════════════════════════════
+let rubricsCache = [];
+let editingRubricId = null;
+let rubricCriteria = [];
+
+async function loadRubrics(){
+  try {
+    const snap = await guardPermission(db.collection('rubrics').orderBy('createdAt','desc').get(), null);
+    rubricsCache = snap ? snap.docs.map(d=>({id:d.id,...d.data()})) : [];
+  } catch(e){ rubricsCache=[]; showToast('Could not load rubrics: '+(e.message||e),'error'); }
+  renderManageRubrics();
+}
+
+function renderManageRubrics(){
+  const tbody=document.getElementById('manageRubricsTbody'); if(!tbody) return;
+  if(rubricsCache.length===0){
+    tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">No rubrics yet. Click "+ New Rubric" to build one.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML=rubricsCache.map(r=>{
+    const usedBy = activitiesCache.filter(a=>a.rubricId===r.id).length;
+    return `<tr>
+      <td><strong>${escapeHtml(r.title)}</strong>${r.description?`<div style="font-size:0.72rem;color:var(--muted);margin-top:2px;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.description)}</div>`:''}</td>
+      <td>${(r.criteria||[]).length}</td>
+      <td>${r.totalPoints||0} pts</td>
+      <td>${usedBy?`${usedBy} quiz${usedBy!==1?'zes':''}`:'<span style="color:var(--muted);">— unused —</span>'}</td>
+      <td><div style="display:flex;gap:6px;">
+        <button class="btn-xs" onclick="openRubricViewModal('${r.id}')">👁 View</button>
+        <button class="btn-xs" onclick="openRubricModal('${r.id}')">Edit</button>
+        <button class="btn-xs" onclick="duplicateRubric('${r.id}')">⧉ Duplicate</button>
+        <button class="btn-xs red" onclick="deleteRubric('${r.id}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openRubricModal(id){
+  editingRubricId = id||null;
+  rubricCriteria = [];
+  document.getElementById('rubricModalTitle').textContent = id?'Edit Rubric':'New Rubric';
+  document.getElementById('rbSaveBtn').textContent = id?'Save Changes':'Save Rubric';
+  document.getElementById('rbCriteriaWrap').innerHTML='';
+  const delBtn=document.getElementById('rbDeleteBtn');
+  if(delBtn) delBtn.classList.toggle('hidden', !id);
+  if(id){
+    const r=rubricsCache.find(x=>x.id===id)||{};
+    document.getElementById('rbTitle').value=r.title||'';
+    document.getElementById('rbDescription').value=r.description||'';
+    (r.criteria&&r.criteria.length?r.criteria:[{name:'',max:10}]).forEach(c=>addRubricCriterion({...c}));
+  } else {
+    document.getElementById('rubricForm').reset();
+    addRubricCriterion({name:'',max:10});
+  }
+  document.getElementById('rubricModal').classList.remove('hidden');
+}
+function closeRubricModal(){ document.getElementById('rubricModal').classList.add('hidden'); editingRubricId=null; rubricCriteria=[]; }
+
+function addRubricCriterion(data){
+  const idx = rubricCriteria.length;
+  rubricCriteria.push(data || {name:'', max:10});
+  renderRubricCriteriaBuilder();
+}
+function removeRubricCriterion(idx){
+  rubricCriteria.splice(idx,1);
+  renderRubricCriteriaBuilder();
+}
+function renderRubricCriteriaBuilder(){
+  const wrap = document.getElementById('rbCriteriaWrap'); if(!wrap) return;
+  wrap.innerHTML = rubricCriteria.map((c,idx)=>`
+    <div class="rb-criterion-row">
+      <input placeholder="Criterion name (e.g. Code Quality)" value="${escapeHtml(c.name||'')}" style="flex:1;padding:6px 10px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);" oninput="rubricCriteria[${idx}].name=this.value"/>
+      <input type="number" min="1" value="${c.max||10}" style="width:72px;padding:6px 8px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);" title="Max points for this criterion" oninput="rubricCriteria[${idx}].max=Math.max(1,parseInt(this.value)||1);updateRubricTotalLabel();"/>
+      <button type="button" onclick="removeRubricCriterion(${idx})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.9rem;">✕</button>
+    </div>
+  `).join('');
+  updateRubricTotalLabel();
+}
+function updateRubricTotalLabel(){
+  const lbl = document.getElementById('rbTotalLabel'); if(!lbl) return;
+  const total = rubricCriteria.reduce((s,c)=>s+(parseInt(c.max)||0),0);
+  lbl.textContent = `${total} pts defined`;
+}
+
+async function saveRubric(e){
+  e.preventDefault();
+  const btn=document.getElementById('rbSaveBtn');
+  const title=document.getElementById('rbTitle').value.trim();
+  const criteria=rubricCriteria.filter(c=>c.name&&c.name.trim()).map(c=>({name:c.name.trim(),max:Math.max(1,parseInt(c.max)||1)}));
+  if(!title){ showToast('Please give the rubric a title.','error'); return false; }
+  if(!criteria.length){ showToast('Add at least one criterion.','error'); return false; }
+  btn.disabled=true; btn.textContent='Saving…';
+  const data={
+    title,
+    description:document.getElementById('rbDescription').value.trim(),
+    criteria,
+    totalPoints:criteria.reduce((s,c)=>s+c.max,0),
+    createdBy:currentUser?.id||currentUser?.uid||'',
+    createdByName:currentUser?currentUser.name:'',
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try {
+    if(editingRubricId){
+      await guardPermission(db.collection('rubrics').doc(editingRubricId).update(data));
+      showToast('Rubric updated.','success');
+    } else {
+      data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+      await guardPermission(db.collection('rubrics').add(data));
+      showToast('Rubric created. 📐','success');
+    }
+    closeRubricModal();
+    await loadRubrics();
+  } catch(err){ showToast('Could not save rubric: '+(err.message||err),'error'); }
+  finally{ btn.disabled=false; btn.textContent=editingRubricId?'Save Changes':'Save Rubric'; }
+  return false;
+}
+
+async function deleteRubric(id){
+  const rid = id || editingRubricId;
+  if(!rid) return;
+  const usedBy = activitiesCache.filter(a=>a.rubricId===rid).length;
+  const warn = usedBy ? ` It's currently attached to ${usedBy} quiz${usedBy!==1?'zes':''} — they'll keep their scores, but won't show a rubric reference anymore.` : '';
+  if(!confirm('Delete this rubric? This cannot be undone.'+warn)) return;
+  try {
+    await guardPermission(db.collection('rubrics').doc(rid).delete());
+    showToast('Rubric deleted.','success');
+    closeRubricModal();
+    await loadRubrics();
+  } catch(e){ showToast('Could not delete: '+(e.message||e),'error'); }
+}
+
+async function duplicateRubric(id){
+  const r=rubricsCache.find(x=>x.id===id);
+  if(!r){ showToast('Rubric not found.','error'); return; }
+  try {
+    const copy={
+      title:r.title+' (Copy)', description:r.description||'',
+      criteria:(r.criteria||[]).map(c=>({...c})), totalPoints:r.totalPoints||0,
+      createdBy:currentUser?.id||'', createdByName:currentUser?currentUser.name:'',
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await guardPermission(db.collection('rubrics').add(copy));
+    showToast('Rubric duplicated.','success');
+    await loadRubrics();
+  } catch(e){ showToast('Could not duplicate: '+(e.message||e),'error'); }
+}
+
+// Read-only rubric viewer — used from Manage Content, and from the Gradebook
+function openRubricViewModal(rubricId){
+  const r = rubricsCache.find(x=>x.id===rubricId);
+  const titleEl=document.getElementById('rbViewTitle');
+  const bodyEl=document.getElementById('rbViewBody');
+  if(!bodyEl) return;
+  if(!r){
+    if(titleEl) titleEl.textContent='Rubric';
+    bodyEl.innerHTML='<p class="card-sub">This rubric could not be found — it may have been deleted.</p>';
+  } else {
+    if(titleEl) titleEl.textContent=r.title;
+    bodyEl.innerHTML=`
+      ${r.description?`<p style="font-size:var(--text-sm);color:var(--slate);margin-bottom:14px;">${escapeHtml(r.description)}</p>`:''}
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${(r.criteria||[]).map(c=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);">
+            <span style="font-size:var(--text-sm);font-weight:600;color:var(--ink);">${escapeHtml(c.name)}</span>
+            <span style="font-size:var(--text-sm);font-weight:700;color:var(--gold);">${c.max} pts</span>
+          </div>
+        `).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1.5px solid var(--border);font-size:var(--text-sm);font-weight:700;color:var(--ink);">
+        <span>Total</span><span>${r.totalPoints||0} pts</span>
+      </div>
+    `;
+  }
+  document.getElementById('rubricViewModal').classList.remove('hidden');
+}
+function closeRubricViewModal(){ document.getElementById('rubricViewModal').classList.add('hidden'); }
+
+// Gradebook integration — "View Rubric" button next to the activity filter
+function gbViewRubric(){
+  const filter = document.getElementById('gbFilterActivity')?.value || '';
+  const activity = activitiesCache.find(a=>a.title===filter);
+  if(!activity || !activity.rubricId){ showToast('No rubric attached to this quiz.','error'); return; }
+  openRubricViewModal(activity.rubricId);
+}
+function updateGbRubricButton(){
+  const filter = document.getElementById('gbFilterActivity')?.value || '';
+  const btn = document.getElementById('gbViewRubricBtn');
+  if(!btn) return;
+  const activity = filter ? activitiesCache.find(a=>a.title===filter) : null;
+  const hasRubric = !!(activity && activity.rubricId && rubricsCache.find(r=>r.id===activity.rubricId));
+  btn.classList.toggle('hidden', !hasRubric);
 }
 
 // ══════════════════════════════════════════════════════
@@ -7012,7 +7418,7 @@ function renderLeaderboard(leaders, grade){
 const _origGoTo = typeof goTo === 'function' ? goTo : null;
 function goTo(pageId){
   // Call original navigation
-  const pages2 = ['dashboard','activity','modules','leaderboard','teacher-dashboard','teacher-students','teacher-users','manage-content','teacher-analytics','code-lessons','simulator','schedule','attendance','gradebook','achievements','squad-mode','resistor-calc','circuit-glossary','flashcards'];
+  const pages2 = ['dashboard','activity','modules','leaderboard','teacher-dashboard','teacher-students','teacher-users','manage-content','teacher-analytics','code-lessons','simulator','schedule','announcements','attendance','gradebook','achievements','squad-mode','resistor-calc','circuit-glossary','flashcards'];
   pages2.forEach(p=>{
     const el=document.getElementById('page-'+p);
     if(el) el.classList.add('hidden');
@@ -7036,7 +7442,7 @@ function goTo(pageId){
     'teacher-students':'My Students', 'teacher-users':'Manage Users',
     'manage-content':'Manage Content', 'teacher-analytics':'Analytics',
     'code-lessons':'Code Lessons', simulator:'Arduino Lab',
-    schedule:'Class Schedule', attendance:'Attendance',
+    schedule:'Class Schedule', announcements:'Announcements', attendance:'Attendance',
     gradebook:'Gradebook',
     achievements:'Achievements', 'squad-mode':'Daily & Squad',
     'resistor-calc':'Resistor Calculator', 'circuit-glossary':'Circuit Symbols', 'flashcards':'Flashcards'
@@ -7058,6 +7464,7 @@ function goTo(pageId){
   if(pageId==='code-lessons') initCodeLessons();
   if(pageId==='simulator') initSimulatorFrame();
   if(pageId==='schedule') initCalendar();
+  if(pageId==='announcements') initAnnouncementBoard();
   if(pageId==='attendance') initAttendance();
   if(pageId==='gradebook') initGradebook();
   if(pageId==='achievements') initAchievements();
@@ -8002,7 +8409,7 @@ function initNotifications(user, role){
     .orderBy('createdAt','desc')
     .limit(30)
     .onSnapshot(snap=>{
-      const global = snap.docs.map(d=>({id:d.id,...d.data()}));
+      const global = snap.docs.map(d=>({id:d.id,...d.data()})).filter(n=>!isAnnExpired(n));
       // also load user-specific
       db.collection('notifications').where('targetUid','==',user.uid)
         .orderBy('createdAt','desc').limit(20).get().then(snap2=>{
@@ -8085,9 +8492,11 @@ async function sendAnnouncement(){
       title: titleMap[type]||'📢 Announcement',
       body: txt,
       type,
+      pinned: false,
       targetAll: true,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      createdBy: currentUser?.uid
+      createdBy: currentUser?.uid,
+      createdByName: currentUser?currentUser.name:''
     });
     document.getElementById('announceText').value='';
     showToast('Announcement sent! 📢','success');
@@ -8100,6 +8509,207 @@ function relativeTime(date){
   if(diff<3600) return Math.floor(diff/60)+'m ago';
   if(diff<86400) return Math.floor(diff/3600)+'h ago';
   return Math.floor(diff/86400)+'d ago';
+}
+
+// An announcement/notification is expired once its optional expiresAt
+// timestamp (an ISO datetime string) has passed.
+function isAnnExpired(n){
+  if(!n || !n.expiresAt) return false;
+  return new Date(n.expiresAt).getTime() < Date.now();
+}
+
+// Human-readable "Expires in 3h" / "Expired 2h ago" label for a given ISO datetime.
+function annExpiryLabel(expiresAt){
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  const abs = Math.abs(ms);
+  let amount, unit;
+  if(abs < 3600000){ amount = Math.max(1, Math.round(abs/60000)); unit = amount===1?'minute':'minutes'; }
+  else if(abs < 86400000){ amount = Math.round(abs/3600000); unit = amount===1?'hour':'hours'; }
+  else { amount = Math.round(abs/86400000); unit = amount===1?'day':'days'; }
+  return ms <= 0 ? `Expired ${amount} ${unit} ago` : `Expires in ${amount} ${unit}`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// FEATURE: ANNOUNCEMENT BOARD
+// Dedicated feed view over the same `notifications` collection used by
+// the bell dropdown — adds pin/edit/delete for teachers, a real feed
+// for everyone else.
+// ══════════════════════════════════════════════════════════════
+let annItems = [];
+let annUnsubscribe = null;
+let annFilterType = 'all';
+let annEditingId = null;
+
+function initAnnouncementBoard(){
+  const isTeacher = currentUser && (currentUser.role==='teacher'||currentUser.role==='admin'||currentUser.role==='teacher-admin');
+  document.getElementById('annComposerCard')?.classList.toggle('hidden', !isTeacher);
+  const sub = document.getElementById('annPageSub');
+  if(sub) sub.textContent = isTeacher
+    ? 'Post announcements, quiz alerts, and reminders for the whole class.'
+    : 'Everything posted to the class, in one place.';
+
+  if(annUnsubscribe) annUnsubscribe();
+  annUnsubscribe = db.collection('notifications')
+    .where('targetAll','==',true)
+    .orderBy('createdAt','desc')
+    .limit(100)
+    .onSnapshot(snap=>{
+      annItems = snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderAnnouncementBoard();
+    }, ()=>{ annItems=[]; renderAnnouncementBoard(); });
+}
+
+function setAnnFilter(type){
+  annFilterType = type;
+  document.querySelectorAll('#annFilterPills .filter-pill').forEach((btn,i)=>{
+    const types=['all','announce','quiz','reminder'];
+    btn.classList.toggle('active', types[i]===type);
+  });
+  renderAnnouncementBoard();
+}
+
+function renderAnnouncementBoard(){
+  const list = document.getElementById('annBoardList'); if(!list) return;
+  const isTeacher = currentUser && (currentUser.role==='teacher'||currentUser.role==='admin'||currentUser.role==='teacher-admin');
+  let items = annFilterType==='all' ? annItems : annItems.filter(n=>(n.type||'announce')===annFilterType);
+  // Students never see expired announcements; teachers still see them
+  // (greyed out, pushed to the bottom) so they can extend or delete them.
+  if(!isTeacher) items = items.filter(n=>!isAnnExpired(n));
+  items = [...items].sort((a,b)=>{
+    const ea = isAnnExpired(a)?1:0, eb = isAnnExpired(b)?1:0;
+    if(ea!==eb) return ea-eb;
+    const pa = (a.pinned&&!ea)?1:0, pb = (b.pinned&&!eb)?1:0;
+    if(pa!==pb) return pb-pa;
+    const ta = a.createdAt?.toMillis?.() || 0;
+    const tb = b.createdAt?.toMillis?.() || 0;
+    return tb-ta;
+  });
+  if(!items.length){
+    list.innerHTML = '<p class="card-sub">No announcements yet.</p>';
+    return;
+  }
+  const iconMap = {quiz:'📝',announce:'📢',reminder:'⏰'};
+  list.innerHTML = items.map(n=>{
+    const type = n.type||'announce';
+    const expired = isAnnExpired(n);
+    const ts = n.createdAt?.toDate ? n.createdAt.toDate() : null;
+    const rel = ts ? relativeTime(ts) : '';
+    const bodyHtml = escapeHtml(n.body||'').replace(/\n/g,'<br>');
+    let dateTag = '';
+    if(expired) dateTag = `<span style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--red);">⏳ ${escapeHtml(annExpiryLabel(n.expiresAt))}</span>`;
+    else if(n.expiresAt) dateTag = `<span style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);">⏳ ${escapeHtml(annExpiryLabel(n.expiresAt))}</span>`;
+    return `<div class="ann-card${(n.pinned&&!expired)?' pinned':''}"${expired?' style="opacity:0.55;"':''}>
+      <div class="ann-card-icon ${type}">${iconMap[type]||'🔔'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+          <span style="font-weight:700;color:var(--ink);font-size:var(--text-sm);">${escapeHtml(n.title||'Announcement')}</span>
+          ${(n.pinned&&!expired)?'<span class="ann-pin-tag">📌 Pinned</span>':''}
+          ${dateTag}
+        </div>
+        <div style="font-size:var(--text-sm);color:var(--ink-3);line-height:1.55;">${bodyHtml}</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:8px;">${n.createdByName?escapeHtml(n.createdByName)+' · ':''}${rel}</div>
+        ${isTeacher?`<div style="display:flex;gap:6px;margin-top:10px;">
+          <button class="btn-xs" onclick="toggleAnnPin('${n.id}',${!!n.pinned})">${n.pinned?'📌 Unpin':'📌 Pin'}</button>
+          <button class="btn-xs" onclick="openAnnEditForm('${n.id}')">Edit</button>
+          <button class="btn-xs red" onclick="deleteBoardAnnouncement('${n.id}')">Delete</button>
+        </div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveBoardAnnouncement(){
+  const titleInput = (document.getElementById('annTitle')?.value||'').trim();
+  const body = (document.getElementById('annBody')?.value||'').trim();
+  const type = document.getElementById('annType')?.value||'announce';
+  const pinned = !!document.getElementById('annPin')?.checked;
+  const expiresInVal = document.getElementById('annExpiresIn')?.value||'';
+  if(!body){ showToast('Please write a message before posting.','error'); return; }
+  const titleMap={announce:'📢 Announcement',quiz:'📝 Quiz Alert',reminder:'⏰ Reminder'};
+  const title = titleInput || titleMap[type] || '📢 Announcement';
+  const btn = document.getElementById('annSaveBtn');
+  btn.disabled = true; btn.textContent = annEditingId ? 'Saving…' : 'Posting…';
+  const data = { title, body, type, pinned };
+  // 'keep' only appears as an option while editing an item that already has
+  // a future expiry — leave its expiresAt untouched in that case.
+  if(expiresInVal !== 'keep'){
+    data.expiresAt = expiresInVal ? new Date(Date.now() + parseFloat(expiresInVal)*3600000).toISOString() : '';
+  }
+  try {
+    if(annEditingId){
+      await db.collection('notifications').doc(annEditingId).update(data);
+      showToast('Announcement updated.','success');
+    } else {
+      data.targetAll = true;
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      data.createdBy = currentUser?.uid;
+      data.createdByName = currentUser?currentUser.name:'';
+      await db.collection('notifications').add(data);
+      showToast('Announcement posted! 📢','success');
+    }
+    cancelAnnEdit();
+  } catch(e){ showToast('Could not save: '+(e.message||e),'error'); }
+  finally { btn.disabled=false; btn.textContent = annEditingId ? 'Save Changes' : 'Post Announcement'; }
+}
+
+function openAnnEditForm(id){
+  const n = annItems.find(x=>x.id===id); if(!n) return;
+  annEditingId = id;
+  document.getElementById('annTitle').value = n.title||'';
+  document.getElementById('annBody').value = n.body||'';
+  document.getElementById('annType').value = n.type||'announce';
+  document.getElementById('annPin').checked = !!n.pinned;
+  const sel = document.getElementById('annExpiresIn');
+  if(sel){
+    const oldKeep = sel.querySelector('option[value="keep"]'); if(oldKeep) oldKeep.remove();
+    if(n.expiresAt && !isAnnExpired(n)){
+      const opt = document.createElement('option');
+      opt.value = 'keep';
+      opt.textContent = `Keep current (${annExpiryLabel(n.expiresAt)})`;
+      sel.insertBefore(opt, sel.firstChild);
+      sel.value = 'keep';
+    } else {
+      sel.value = '';
+    }
+  }
+  document.getElementById('annComposerTitle').textContent = 'Edit Announcement';
+  document.getElementById('annSaveBtn').textContent = 'Save Changes';
+  document.getElementById('annCancelBtn')?.classList.remove('hidden');
+  document.getElementById('annComposerCard')?.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function cancelAnnEdit(){
+  annEditingId = null;
+  const form = document.getElementById('annTitle');
+  if(form){
+    document.getElementById('annTitle').value='';
+    document.getElementById('annBody').value='';
+    document.getElementById('annType').value='announce';
+    document.getElementById('annPin').checked=false;
+    const sel = document.getElementById('annExpiresIn');
+    if(sel){
+      const oldKeep = sel.querySelector('option[value="keep"]'); if(oldKeep) oldKeep.remove();
+      sel.value = '';
+    }
+  }
+  document.getElementById('annComposerTitle').textContent = 'Post an Announcement';
+  document.getElementById('annSaveBtn').textContent = 'Post Announcement';
+  document.getElementById('annCancelBtn')?.classList.add('hidden');
+}
+
+
+async function toggleAnnPin(id, current){
+  try { await db.collection('notifications').doc(id).update({ pinned: !current }); }
+  catch(e){ showToast('Could not update: '+(e.message||e),'error'); }
+}
+
+async function deleteBoardAnnouncement(id){
+  if(!confirm('Delete this announcement? This cannot be undone.')) return;
+  try {
+    await db.collection('notifications').doc(id).delete();
+    showToast('Announcement deleted.','success');
+    if(annEditingId===id) cancelAnnEdit();
+  } catch(e){ showToast('Could not delete: '+(e.message||e),'error'); }
 }
 
 // Hook into the existing auth success to start notifications
@@ -8552,6 +9162,7 @@ async function loadTeacherGradebook(){
     ]);
     gbAllScores = scoresSnap ? scoresSnap.docs.map(d=>({id:d.id,...d.data()})) : [];
     gbStudents = studSnap ? studSnap.docs.map(d=>({id:d.id,...d.data()})) : [];
+    if(!rubricsCache.length) await loadRubrics();
     // Build activity list
     const actSet = new Set();
     gbAllScores.forEach(s=>{ if(s.activityTitle||s.quizTitle) actSet.add(s.activityTitle||s.quizTitle); });
@@ -8567,6 +9178,7 @@ async function loadTeacherGradebook(){
 
 function renderGradebook(){
   const filter = document.getElementById('gbFilterActivity')?.value || '';
+  updateGbRubricButton();
   const scores = filter ? gbAllScores.filter(s=>(s.activityTitle||s.quizTitle)===filter) : gbAllScores;
 
   // Build student -> activity -> score map
@@ -10244,6 +10856,168 @@ async function deleteCgSymbol(){
     await loadCustomGlossary();
   } catch(e){ showToast('Could not delete: '+(e.message||e),'error'); }
 }
+
+// ══════════════════════════════════════════════════════════════
+// FEATURE: GLOBAL SEARCH
+// Client-side search across Modules, Circuit Glossary, Flashcards,
+// Schedule, Announcements, and (for teachers) Students. Results
+// navigate to the relevant page and, where possible, pre-filter it.
+// ══════════════════════════════════════════════════════════════
+let gSearchPreloaded = false;
+let gSearchDebounceTimer = null;
+let gSearchLastResults = [];
+
+async function gSearchPreload(){
+  if(gSearchPreloaded) return;
+  gSearchPreloaded = true;
+  const tasks = [];
+  if(!modulesCache.length) tasks.push(loadModulesFromDB().catch(()=>{}));
+  if(!cgCustomSymbols.length) tasks.push(loadCustomGlossary().catch(()=>{}));
+  else cgBuildAll();
+  if(!calEvents.length){
+    tasks.push(db.collection('schedule_events').get().then(snap=>{
+      calEvents = snap.docs.map(d=>({id:d.id,...d.data()}));
+    }).catch(()=>{}));
+  }
+  const isTeacher = currentUser && (currentUser.role==='teacher'||currentUser.role==='admin'||currentUser.role==='teacher-admin');
+  if(isTeacher && !teacherRosterCache.length) tasks.push(loadTeacherRoster().catch(()=>{}));
+  await Promise.all(tasks);
+}
+
+function gSearchInput(inputId, panelId){
+  clearTimeout(gSearchDebounceTimer);
+  gSearchDebounceTimer = setTimeout(()=>gSearchRun(inputId, panelId), 150);
+}
+
+async function gSearchRun(inputId, panelId){
+  const input = document.getElementById(inputId);
+  const panel = document.getElementById(panelId);
+  if(!input || !panel) return;
+  const q = input.value.trim().toLowerCase();
+  if(q.length < 2){ panel.classList.remove('open'); panel.innerHTML=''; return; }
+  await gSearchPreload();
+  if(input.value.trim().toLowerCase() !== q) return; // query changed while loading
+  gSearchRenderPanel(gSearchCollect(q), panel, q);
+}
+
+function gSearchCollect(q){
+  const isTeacher = currentUser && (currentUser.role==='teacher'||currentUser.role==='admin'||currentUser.role==='teacher-admin');
+  const out = [];
+
+  modulesCache.filter(m=>(m.title||'').toLowerCase().includes(q) || (m.description||'').toLowerCase().includes(q))
+    .slice(0,5).forEach(m=>out.push({cat:'Modules', icon:m.icon||'📦', title:m.title, sub:m.description||'', type:'module'}));
+
+  (cgAllSymbols||[]).filter(s=>s.name.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q) || s.use.toLowerCase().includes(q))
+    .slice(0,5).forEach(s=>out.push({cat:'Circuit Glossary', icon:s.emoji||'🔧', title:s.name, sub:s.desc, type:'glossary', payload:s.name}));
+
+  const allCards = [];
+  Object.entries(FC_DECKS).forEach(([deckKey, cards])=> cards.forEach(c=>allCards.push({...c, deckKey})));
+  allCards.filter(c=>c.front.toLowerCase().includes(q) || c.back.toLowerCase().includes(q))
+    .slice(0,5).forEach(c=>out.push({cat:'Flashcards', icon:'🗂️', title:c.front, sub:c.back, type:'flashcard', deckKey:c.deckKey}));
+
+  calEvents.filter(e=>(e.title||'').toLowerCase().includes(q) || (e.notes||'').toLowerCase().includes(q))
+    .slice(0,5).forEach(e=>out.push({cat:'Schedule', icon:'📅', title:e.title||'Event', sub:e.date||'', type:'schedule'}));
+
+  notifItems.filter(n=>(n.title||'').toLowerCase().includes(q) || (n.body||'').toLowerCase().includes(q))
+    .slice(0,5).forEach(n=>out.push({cat:'Announcements', icon:'📢', title:n.title||'Announcement', sub:n.body||'', type:'announcement'}));
+
+  if(isTeacher){
+    teacherRosterCache.filter(s=>(s.name||'').toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q))
+      .slice(0,5).forEach(s=>out.push({cat:'Students', icon:'🧑‍🎓', title:s.name||'Unnamed', sub:s.email||'', type:'student', payload:s.name||''}));
+  }
+
+  return out;
+}
+
+function gSearchRenderPanel(results, panel, q){
+  gSearchLastResults = results;
+  panel.classList.add('open');
+  if(!results.length){
+    panel.innerHTML = `<div class="gsearch-empty">No matches for "${escapeHtml(q)}"</div>`;
+    return;
+  }
+  const cats = [];
+  results.forEach((r,idx)=>{
+    let group = cats.find(c=>c.cat===r.cat);
+    if(!group){ group={cat:r.cat, items:[]}; cats.push(group); }
+    group.items.push({...r, idx});
+  });
+  panel.innerHTML = cats.map(g=>`
+    <div class="gsearch-cat-label">${escapeHtml(g.cat)}</div>
+    ${g.items.map(it=>`
+      <div class="gsearch-item" onclick="gSearchGoTo(${it.idx})">
+        <span class="gsearch-item-icon">${it.icon}</span>
+        <div style="flex:1;min-width:0;">
+          <div class="gsearch-item-title">${escapeHtml(it.title)}</div>
+          ${it.sub?`<div class="gsearch-item-sub">${escapeHtml(it.sub)}</div>`:''}
+        </div>
+      </div>
+    `).join('')}
+  `).join('');
+}
+
+function gSearchGoTo(idx){
+  const r = gSearchLastResults[idx]; if(!r) return;
+  gSearchCloseAll();
+  switch(r.type){
+    case 'module':
+      goTo('modules');
+      break;
+    case 'glossary':
+      goTo('circuit-glossary');
+      setTimeout(()=>{
+        const inp=document.getElementById('cgSearch');
+        if(inp){ inp.value=r.payload||r.title; cgFilter(); }
+      }, 60);
+      break;
+    case 'flashcard':
+      goTo('flashcards');
+      setTimeout(()=>{
+        const sel=document.getElementById('fcDeck');
+        if(sel){ sel.value=r.deckKey; fcLoadDeck(); }
+      }, 60);
+      break;
+    case 'schedule':
+      goTo('schedule');
+      break;
+    case 'announcement':
+      goTo('announcements');
+      break;
+    case 'student':
+      goTo('teacher-students');
+      setTimeout(()=>{
+        const inp=document.getElementById('teacherStudentSearch');
+        if(inp){ inp.value=r.payload||r.title; renderTeacherStudents(); }
+      }, 60);
+      break;
+  }
+}
+
+function gSearchCloseAll(){
+  document.querySelectorAll('.gsearch-panel').forEach(p=>{ p.classList.remove('open'); p.innerHTML=''; });
+  const d=document.getElementById('gsearchInput'); if(d) d.value='';
+  const m=document.getElementById('gsearchInputMob'); if(m) m.value='';
+  document.getElementById('mobSearchBar')?.classList.remove('open');
+}
+
+function toggleMobSearch(){
+  const bar = document.getElementById('mobSearchBar'); if(!bar) return;
+  const willOpen = !bar.classList.contains('open');
+  bar.classList.toggle('open', willOpen);
+  if(willOpen) setTimeout(()=>document.getElementById('gsearchInputMob')?.focus(), 50);
+  else document.getElementById('gsearchPanelMob')?.classList.remove('open');
+}
+
+document.addEventListener('click', e=>{
+  const wrap = document.getElementById('gsearchWrap');
+  const mobBar = document.getElementById('mobSearchBar');
+  const inMob = mobBar && mobBar.contains(e.target);
+  const inDesktop = wrap && wrap.contains(e.target);
+  if(!inMob && !inDesktop){
+    document.querySelectorAll('.gsearch-panel').forEach(p=>p.classList.remove('open'));
+  }
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') gSearchCloseAll(); });
 
 // ══════════════════════════════════════════════════════════════
 // FEATURE: TERMINOLOGY FLASHCARDS
