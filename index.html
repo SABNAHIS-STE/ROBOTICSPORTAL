@@ -1761,6 +1761,9 @@ void main(){
         <button class="nav-item" data-page="flashcards" onclick="goTo('flashcards')">
           <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="16" rx="2"/><path d="M22 8l-4-4"/><path d="M22 16l-4 4"/><path d="M18 4h2a2 2 0 012 2v12a2 2 0 01-2 2h-2"/></svg></span>
           <span class="nav-item-label">Flashcards</span>
+        <button class="nav-item" data-page="chip-shop" onclick="goTo('chip-shop')">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></span>
+          <span class="nav-item-label">🪙 Chip Shop</span>
         </button>
       </div>
 
@@ -1838,6 +1841,10 @@ void main(){
           <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="16" rx="2"/><path d="M22 8l-4-4"/><path d="M22 16l-4 4"/><path d="M18 4h2a2 2 0 012 2v12a2 2 0 01-2 2h-2"/></svg></span>
           <span class="nav-item-label">Flashcards</span>
         </button>
+        <button class="nav-item" data-page="chip-shop" onclick="goTo('chip-shop')">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></span>
+          <span class="nav-item-label">🪙 Chip Shop</span>
+        </button>
       </div>
     </nav>
 
@@ -1904,6 +1911,10 @@ void main(){
         <div class="gsearch-panel" id="gsearchPanel"></div>
       </div>
       <div class="topbar-spacer"></div>
+      <!-- Chip balance in topbar (students) -->
+      <button id="topbarChipBadge" onclick="goTo('chip-shop')" title="Your squad's chips" style="display:none;background:linear-gradient(135deg,var(--gold),var(--robot));color:#fff;border:none;border-radius:99px;padding:5px 12px;font-size:0.82rem;font-family:var(--font-mono);font-weight:700;cursor:pointer;display:none;align-items:center;gap:5px;min-height:32px;">
+        🪙 <span id="topbarChipAmt">0</span>
+      </button>
       <button class="topbar-action" onclick="toggleTheme()">
         <span id="themeIcon">☾</span> <span id="themeLabel">Dark</span>
       </button>
@@ -4159,7 +4170,164 @@ void loop() {
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════
+     CHIP SHOP PAGE
+════════════════════════════════════════════════════════ -->
+<div class="page page-transition hidden" id="page-chip-shop">
+  <div style="padding:clamp(16px,4vw,32px);max-width:1100px;margin:0 auto;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:6px;">
+      <div>
+        <h1 style="font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;color:var(--ink);display:flex;align-items:center;gap:10px;">
+          🪙 Chip Shop
+        </h1>
+        <p style="color:var(--muted);font-size:var(--text-sm);margin-top:2px;" id="chipShopSub">Spend your squad's chips on rewards from the class shop.</p>
+      </div>
+      <!-- Squad chip balance display -->
+      <div id="chipBalanceBadge" style="background:linear-gradient(135deg,var(--gold),var(--robot));color:#fff;border-radius:var(--radius-xl);padding:10px 20px;font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 4px 18px rgba(201,162,39,0.35);">
+        🪙 <span id="chipBalanceAmt">—</span> <span style="font-family:var(--font-body);font-size:var(--text-xs);font-weight:500;opacity:.85;">chips</span>
+      </div>
+    </div>
+
+    <!-- TEACHER: Give chips panel -->
+    <div id="chipTeacherGivePanel" class="hidden card" style="margin-bottom:20px;border:2px solid var(--gold);background:var(--gold-bg);">
+      <div class="card-title" style="margin-bottom:14px;">💰 Give Chips to a Squad</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;flex-wrap:wrap;">
+        <div>
+          <label style="font-size:var(--text-xs);color:var(--muted);display:block;margin-bottom:4px;">Select Squad</label>
+          <select id="chipGiveSquadSel" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);">
+            <option value="">— choose squad —</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:var(--text-xs);color:var(--muted);display:block;margin-bottom:4px;">Amount</label>
+          <input id="chipGiveAmt" type="number" min="1" max="999" value="10" placeholder="10" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);" />
+        </div>
+        <button class="btn btn-primary" onclick="chipGiveToSquad()" style="white-space:nowrap;">Give Chips 🪙</button>
+      </div>
+      <div style="margin-top:10px;">
+        <label style="font-size:var(--text-xs);color:var(--muted);display:block;margin-bottom:4px;">Optional reason (shown to squad)</label>
+        <input id="chipGiveReason" type="text" placeholder="e.g. Great teamwork on Module 3!" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);" />
+      </div>
+    </div>
+
+    <!-- All Squad Balances (teacher) -->
+    <div id="chipAllSquadBalances" class="hidden card" style="margin-bottom:20px;">
+      <div class="card-title" style="margin-bottom:10px;">📊 All Squad Chip Balances</div>
+      <div id="chipSquadBalancesTable" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <!-- TABS -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;border-bottom:2px solid var(--border);padding-bottom:12px;">
+      <button class="quiz-tab active" id="csTabShop" onclick="csSwitchTab('shop')">🛍️ Shop</button>
+      <button class="quiz-tab" id="csTabPurchases" onclick="csSwitchTab('purchases')">📋 Purchase History</button>
+      <button class="quiz-tab hidden" id="csTabManage" onclick="csSwitchTab('manage')">⚙️ Manage Items</button>
+    </div>
+
+    <!-- SHOP TAB -->
+    <div id="csPanelShop">
+      <div id="csShopLoading" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:4px;">
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:10px;"><div style="width:44px;height:44px;border-radius:10px;animation:shimmer 1.4s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:13px;border-radius:6px;width:65%;animation:shimmer 1.4s 0.1s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:10px;border-radius:6px;width:88%;animation:shimmer 1.4s 0.2s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:30px;border-radius:var(--radius);margin-top:6px;animation:shimmer 1.4s 0.3s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div></div><div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:10px;"><div style="width:44px;height:44px;border-radius:10px;animation:shimmer 1.4s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:13px;border-radius:6px;width:65%;animation:shimmer 1.4s 0.1s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:10px;border-radius:6px;width:88%;animation:shimmer 1.4s 0.2s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:30px;border-radius:var(--radius);margin-top:6px;animation:shimmer 1.4s 0.3s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div></div><div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:10px;"><div style="width:44px;height:44px;border-radius:10px;animation:shimmer 1.4s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:13px;border-radius:6px;width:65%;animation:shimmer 1.4s 0.1s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:10px;border-radius:6px;width:88%;animation:shimmer 1.4s 0.2s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:30px;border-radius:var(--radius);margin-top:6px;animation:shimmer 1.4s 0.3s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div></div><div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:10px;"><div style="width:44px;height:44px;border-radius:10px;animation:shimmer 1.4s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:13px;border-radius:6px;width:65%;animation:shimmer 1.4s 0.1s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:10px;border-radius:6px;width:88%;animation:shimmer 1.4s 0.2s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div><div style="height:30px;border-radius:var(--radius);margin-top:6px;animation:shimmer 1.4s 0.3s infinite linear;background:linear-gradient(90deg,var(--skel-base) 25%,var(--skel-shine) 50%,var(--skel-base) 75%);background-size:200%;"></div></div>
+      </div>
+      <div id="csShopEmpty" class="hidden" style="text-align:center;padding:48px 20px;color:var(--muted);">
+        <div style="font-size:2.5rem;margin-bottom:10px;">🏪</div>
+        <div style="font-weight:700;font-size:var(--text-lg);color:var(--ink);margin-bottom:6px;">Shop is empty</div>
+        <div style="font-size:var(--text-sm);">Your teacher hasn't added any items yet. Check back later!</div>
+      </div>
+      <div id="csShopGrid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;"></div>
+    </div>
+
+    <!-- PURCHASE HISTORY TAB -->
+    <div id="csPanelPurchases" class="hidden">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">Purchase History</div>
+        <div id="csPurchaseList" style="display:flex;flex-direction:column;gap:8px;">
+          <p style="color:var(--muted);font-size:var(--text-sm);">Loading…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MANAGE ITEMS TAB (teacher only) -->
+    <div id="csPanelManage" class="hidden">
+      <!-- Add/Edit Item Form -->
+      <div class="card" style="margin-bottom:16px;border:1.5px solid var(--gold);">
+        <div class="card-title" style="margin-bottom:14px;" id="csManageFormTitle">➕ Add Shop Item</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="font-size:var(--text-xs);color:var(--muted);display:block;margin-bottom:4px;">Item Name *</label>
+            <input id="csItemName" type="text" placeholder="e.g. Extra Quiz Attempt" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);" />
+          </div>
+          <div>
+            <label style="font-size:var(--text-xs);color:var(--muted);display:block;margin-bottom:4px;">Chip Price *</label>
+            <input id="csItemPrice" type="number" min="1" max="9999" value="10" placeholder="10" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);" />
+          </div>
+          <div>
+            <label style="font-size:var(--text-xs);color:var(--muted);display:block;margin-bottom:4px;">Emoji Icon</label>
+            <input id="csItemEmoji" type="text" placeholder="🎁" maxlength="4" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);" />
+          </div>
+          <div>
+            <label style="font-size:var(--text-xs);color:var(--muted);display:block;margin-bottom:4px;">Quantity Available (blank = unlimited)</label>
+            <input id="csItemQty" type="number" min="1" placeholder="Unlimited" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);" />
+          </div>
+          <div style="grid-column:1/-1;">
+            <label style="font-size:var(--text-xs);color:var(--muted);display:block;margin-bottom:4px;">Description</label>
+            <textarea id="csItemDesc" rows="2" placeholder="What does this reward give the squad?" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);resize:vertical;"></textarea>
+          </div>
+          <div>
+            <label style="font-size:var(--text-xs);color:var(--muted);display:block;margin-bottom:4px;">Category</label>
+            <select id="csItemCat" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--white);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-body);">
+              <option value="reward">🎁 Reward</option>
+              <option value="boost">⚡ Boost</option>
+              <option value="privilege">👑 Privilege</option>
+              <option value="tool">🔧 Tool</option>
+              <option value="fun">🎉 Fun</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding-top:18px;">
+            <input type="checkbox" id="csItemActive" checked style="width:16px;height:16px;" />
+            <label for="csItemActive" style="font-size:var(--text-sm);color:var(--ink);">Active (visible in shop)</label>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn btn-primary" onclick="csItemSave()" id="csItemSaveBtn">Add Item</button>
+          <button class="btn btn-secondary" onclick="csItemCancelEdit()" id="csItemCancelBtn" style="display:none;">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Existing items table -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">All Shop Items</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm);">
+            <thead>
+              <tr style="text-align:left;border-bottom:2px solid var(--border);">
+                <th style="padding:8px 10px;color:var(--muted);font-weight:600;">Item</th>
+                <th style="padding:8px 10px;color:var(--muted);font-weight:600;">Price</th>
+                <th style="padding:8px 10px;color:var(--muted);font-weight:600;">Category</th>
+                <th style="padding:8px 10px;color:var(--muted);font-weight:600;">Stock</th>
+                <th style="padding:8px 10px;color:var(--muted);font-weight:600;">Status</th>
+                <th style="padding:8px 10px;color:var(--muted);font-weight:600;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="csManageTableBody">
+              <tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);">No items yet. Add one above!</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pending purchase approvals -->
+      <div class="card" style="margin-top:16px;border:1.5px solid var(--purple);">
+        <div class="card-title" style="margin-bottom:10px;">📬 Pending Purchases — Approve or Reject</div>
+        <div id="csPendingApprovalsWrap">
+          <p style="color:var(--muted);font-size:var(--text-sm);">No pending purchases.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
+</div><!-- /page-chip-shop -->
+
 </div><!-- /main-content -->
 
 <!-- ═══ AI TUTOR CHAT WIDGET ═══ -->
@@ -4853,7 +5021,7 @@ function enterApp(){
 
   // Show the right sidebar nav + mobile nav + landing page
   document.getElementById('navStudent').classList.toggle('hidden', role!=='student');
-  document.getElementById('navTeacher').classList.toggle('hidden', role!=='teacher');
+  document.getElementById('navTeacher').classList.toggle('hidden', role!=='teacher' && role!=='teacher-admin' && role!=='admin');
   document.getElementById('mobNavStudent').classList.toggle('hidden', role!=='student');
   document.getElementById('mobNavTeacher').classList.toggle('hidden', role!=='teacher');
 
@@ -7418,7 +7586,7 @@ function renderLeaderboard(leaders, grade){
 const _origGoTo = typeof goTo === 'function' ? goTo : null;
 function goTo(pageId){
   // Call original navigation
-  const pages2 = ['dashboard','activity','modules','leaderboard','teacher-dashboard','teacher-students','teacher-users','manage-content','teacher-analytics','code-lessons','simulator','schedule','announcements','attendance','gradebook','achievements','squad-mode','resistor-calc','circuit-glossary','flashcards'];
+  const pages2 = ['dashboard','activity','modules','leaderboard','teacher-dashboard','teacher-students','teacher-users','manage-content','teacher-analytics','code-lessons','simulator','schedule','announcements','attendance','gradebook','achievements','squad-mode','chip-shop','resistor-calc','circuit-glossary','flashcards'];
   pages2.forEach(p=>{
     const el=document.getElementById('page-'+p);
     if(el) el.classList.add('hidden');
@@ -7445,7 +7613,8 @@ function goTo(pageId){
     schedule:'Class Schedule', announcements:'Announcements', attendance:'Attendance',
     gradebook:'Gradebook',
     achievements:'Achievements', 'squad-mode':'Daily & Squad',
-    'resistor-calc':'Resistor Calculator', 'circuit-glossary':'Circuit Symbols', 'flashcards':'Flashcards'
+    'resistor-calc':'Resistor Calculator', 'circuit-glossary':'Circuit Symbols', 'flashcards':'Flashcards',
+    'chip-shop':'🪙 Chip Shop'
   };
   const title=pageTitlesLocal[pageId]||pageId;
   const tt=document.getElementById('topbarTitle'); if(tt) tt.textContent=title;
@@ -7472,6 +7641,7 @@ function goTo(pageId){
   if(pageId==='resistor-calc') initResistorCalc();
   if(pageId==='circuit-glossary') initCircuitGlossary();
   if(pageId==='flashcards') initFlashcards();
+  if(pageId==='chip-shop') initChipShop();
 }
 
 // Loads the simulator into its iframe the first time the tab is opened
@@ -11147,6 +11317,533 @@ function fcUpdateProgress(){
   const lbl=document.getElementById('fcProgressLabel');
   if(lbl) lbl.textContent=`${done} / ${total}`;
 }
+
+// ══════════════════════════════════════════════════════════════════
+// CHIP SYSTEM — Squad Chips & Class Shop
+// ══════════════════════════════════════════════════════════════════
+//
+// Firestore collections:
+//   chip_wallets/{squadId}         → { squadId, squadName, balance, totalEarned, updatedAt }
+//   chip_shop_items/{itemId}       → { name, price, emoji, desc, category, qty, soldCount, active, createdAt }
+//   chip_purchases/{purchaseId}    → { squadId, squadName, itemId, itemName, price, status, requestedAt, resolvedAt, resolvedBy }
+//
+// Firestore rules to add:
+//   match /chip_wallets/{squadId} {
+//     allow read: if request.auth != null;
+//     allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+//   }
+//   match /chip_shop_items/{itemId} {
+//     allow read: if request.auth != null;
+//     allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+//   }
+//   match /chip_purchases/{purchaseId} {
+//     allow read: if request.auth != null;
+//     allow create: if request.auth != null;
+//     allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+//   }
+// ══════════════════════════════════════════════════════════════════
+
+let csShopItems = [];
+let csPurchases = [];
+let csEditingItemId = null;
+let csMySquadId = null;
+let csMySquadName = null;
+let csMySquadBalance = 0;
+let csAllSquadWallets = [];
+let csAllSquadsList = []; // from squad system
+let csTabActive = 'shop';
+let csItemsUnsub = null;
+let csPurchasesUnsub = null;
+let csWalletUnsub = null;
+
+const CS_CAT_LABELS = {reward:'🎁 Reward', boost:'⚡ Boost', privilege:'👑 Privilege', tool:'🔧 Tool', fun:'🎉 Fun'};
+
+async function initChipShop() {
+  // Wait for currentUser if not ready yet
+  if(!currentUser) {
+    let waited = 0;
+    await new Promise(resolve => {
+      const poll = setInterval(() => {
+        waited += 100;
+        if(currentUser || waited > 5000) { clearInterval(poll); resolve(); }
+      }, 100);
+    });
+  }
+  if(!currentUser) {
+    document.getElementById('csShopEmpty').classList.remove('hidden');
+    document.getElementById('csShopEmpty').innerHTML = '<div style="padding:48px 20px;text-align:center;color:var(--muted);"><div style="font-size:2rem;margin-bottom:8px;">🔐</div><div>Please log in to view the shop.</div></div>';
+    return;
+  }
+
+  const role = currentUser.role || 'student';
+  const isTeacher = role === 'teacher' || role === 'teacher-admin' || role === 'admin';
+
+  // Show/hide teacher UI
+  document.getElementById('chipTeacherGivePanel')?.classList.toggle('hidden', !isTeacher);
+  document.getElementById('chipAllSquadBalances')?.classList.toggle('hidden', !isTeacher);
+  document.getElementById('csTabManage')?.classList.toggle('hidden', !isTeacher);
+
+  if(isTeacher) {
+    document.getElementById('chipShopSub').textContent = 'Manage shop items, give chips to squads, and approve purchase requests.';
+    document.getElementById('chipBalanceBadge').style.display = 'none';
+    await csLoadAllSquads();
+    csLoadAllWallets();
+    csPendingApprovalsLoad();
+  } else {
+    await csFindMySquad();
+  }
+
+  csLoadShopItems();
+  csLoadPurchaseHistory();
+}
+
+async function csFindMySquad() {
+  try {
+    const snap = await guardPermission(
+      db.collection('squads').where('members','array-contains',currentUser.id).limit(1).get(), null
+    );
+    if(snap && !snap.empty) {
+      const doc = snap.docs[0];
+      csMySquadId = doc.id;
+      csMySquadName = doc.data().name || 'My Squad';
+      csWatchWallet(csMySquadId);
+    } else {
+      document.getElementById('chipBalanceBadge').innerHTML = '🪙 No squad yet';
+    }
+  } catch(e) {
+    console.error('csFindMySquad', e);
+  }
+}
+
+function csWatchWallet(squadId) {
+  if(csWalletUnsub) csWalletUnsub();
+  csWalletUnsub = db.collection('chip_wallets').doc(squadId).onSnapshot(snap => {
+    const data = snap.exists ? snap.data() : {};
+    csMySquadBalance = data.balance || 0;
+    const el = document.getElementById('chipBalanceAmt');
+    if(el) el.textContent = csMySquadBalance;
+    // Topbar badge
+    const tb = document.getElementById('topbarChipBadge');
+    const tbAmt = document.getElementById('topbarChipAmt');
+    if(tb) { tb.style.display = 'inline-flex'; }
+    if(tbAmt) tbAmt.textContent = csMySquadBalance;
+    // Re-render shop to update affordability
+    renderShopGrid();
+  });
+}
+
+function csLoadAllWallets() {
+  db.collection('chip_wallets').onSnapshot(snap => {
+    csAllSquadWallets = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderAllSquadBalances();
+  });
+}
+
+function renderAllSquadBalances() {
+  const wrap = document.getElementById('chipSquadBalancesTable');
+  if(!wrap) return;
+  if(!csAllSquadWallets.length) {
+    wrap.innerHTML = '<p style="color:var(--muted);font-size:var(--text-sm);">No chip wallets yet. Give chips to a squad to get started!</p>';
+    return;
+  }
+  const sorted = [...csAllSquadWallets].sort((a,b) => (b.balance||0)-(a.balance||0));
+  wrap.innerHTML = sorted.map(w => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:1.4rem;">👾</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:var(--text-sm);">${escapeHtml(w.squadName||w.id)}</div>
+        <div style="font-size:0.72rem;color:var(--muted);">Total earned: ${w.totalEarned||0} chips</div>
+      </div>
+      <div style="font-family:var(--font-mono);font-weight:700;font-size:var(--text-lg);color:var(--gold);">🪙 ${w.balance||0}</div>
+    </div>
+  `).join('');
+}
+
+async function csLoadAllSquads() {
+  try {
+    const snap = await guardPermission(db.collection('squads').get(), null);
+    csAllSquadsList = snap ? snap.docs.map(d=>({id:d.id,...d.data()})) : [];
+    const sel = document.getElementById('chipGiveSquadSel');
+    if(sel) {
+      sel.innerHTML = '<option value="">— choose squad —</option>' +
+        csAllSquadsList.map(s=>`<option value="${s.id}">${escapeHtml(s.name||s.id)}</option>`).join('');
+    }
+    // Also populate squad dropdown in balance display
+    const teamBal = document.getElementById('chipBalanceBadge');
+    if(teamBal) teamBal.style.display = 'none'; // teacher doesn't need personal balance display
+  } catch(e) { console.error('csLoadAllSquads', e); }
+}
+
+async function chipGiveToSquad() {
+  const squadId = document.getElementById('chipGiveSquadSel')?.value;
+  const amt = parseInt(document.getElementById('chipGiveAmt')?.value || '0');
+  const reason = document.getElementById('chipGiveReason')?.value?.trim() || '';
+  if(!squadId) { showToast('Select a squad.','error'); return; }
+  if(!amt || amt < 1) { showToast('Enter a valid amount.','error'); return; }
+
+  const squad = csAllSquadsList.find(s=>s.id===squadId);
+  const squadName = squad?.name || squadId;
+
+  try {
+    const walletRef = db.collection('chip_wallets').doc(squadId);
+    await db.runTransaction(async tx => {
+      const doc = await tx.get(walletRef);
+      const current = doc.exists ? (doc.data().balance||0) : 0;
+      const totalEarned = doc.exists ? (doc.data().totalEarned||0) : 0;
+      tx.set(walletRef, {
+        squadId, squadName,
+        balance: current + amt,
+        totalEarned: totalEarned + amt,
+        updatedAt: new Date().toISOString()
+      }, {merge:true});
+    });
+
+    // Log the transaction
+    await db.collection('chip_transactions').add({
+      type: 'earn', squadId, squadName,
+      amount: amt, reason: reason || 'Awarded by teacher',
+      awardedBy: currentUser.id, awardedByName: currentUser.name,
+      createdAt: new Date().toISOString()
+    });
+
+    showToast(`🪙 ${amt} chips given to ${squadName}!`, 'success');
+    document.getElementById('chipGiveAmt').value = '10';
+    document.getElementById('chipGiveReason').value = '';
+    document.getElementById('chipGiveSquadSel').value = '';
+  } catch(e) { showToast('Could not give chips: '+(e.message||e), 'error'); }
+}
+
+function csLoadShopItems() {
+  if(csItemsUnsub) csItemsUnsub();
+  csItemsUnsub = db.collection('chip_shop_items').onSnapshot(snap => {
+    csShopItems = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+    renderShopGrid();
+    renderManageTable();
+  }, () => {
+    csShopItems = [];
+    renderShopGrid();
+  });
+}
+
+function renderShopGrid() {
+  const grid = document.getElementById('csShopGrid');
+  const empty = document.getElementById('csShopEmpty');
+  const loading = document.getElementById('csShopLoading');
+  if(!grid) return;
+  if(loading) loading.style.display = 'none';
+  const isTeacher = currentUser && (currentUser.role==='teacher'||currentUser.role==='teacher-admin'||currentUser.role==='admin');
+  const visible = isTeacher ? csShopItems : csShopItems.filter(i=>i.active);
+  if(!visible.length) {
+    grid.style.display = 'none';
+    empty?.classList.remove('hidden');
+    return;
+  }
+  empty?.classList.add('hidden');
+  grid.style.display = 'grid';
+  grid.innerHTML = visible.map(item => {
+    const soldOut = item.qty != null && (item.soldCount||0) >= item.qty;
+    const stock = item.qty != null ? (item.qty - (item.soldCount||0)) : null;
+    const canAfford = csMySquadBalance >= item.price;
+    const catColor = {reward:'var(--green)',boost:'var(--blue)',privilege:'var(--gold)',tool:'var(--robot)',fun:'var(--purple)'}[item.category||'reward'] || 'var(--gold)';
+    return `
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:8px;transition:box-shadow .15s;${soldOut?'opacity:.6':''}">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:2rem;">${item.emoji||'🎁'}</span>
+          <span style="font-size:0.68rem;font-weight:700;background:${catColor}1a;color:${catColor};padding:2px 8px;border-radius:99px;">${CS_CAT_LABELS[item.category]||item.category||'Reward'}</span>
+        </div>
+        <div style="font-weight:700;font-size:var(--text-sm);color:var(--ink);">${escapeHtml(item.name)}</div>
+        ${item.desc ? `<div style="font-size:var(--text-xs);color:var(--muted);flex:1;">${escapeHtml(item.desc)}</div>` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+          <div style="font-family:var(--font-mono);font-weight:700;color:var(--gold);font-size:var(--text-base);">🪙 ${item.price}</div>
+          ${stock!==null ? `<div style="font-size:0.68rem;color:${soldOut?'var(--red)':'var(--muted)'};">${soldOut?'Sold out':`${stock} left`}</div>` : ''}
+        </div>
+        ${!isTeacher ? `
+          <button
+            onclick="csBuyItem('${item.id}')"
+            ${soldOut?'disabled':!canAfford?'disabled':''}
+            style="width:100%;padding:8px;border-radius:var(--radius);border:none;font-family:var(--font-body);font-size:var(--text-sm);font-weight:600;cursor:${soldOut||!canAfford?'not-allowed':'pointer'};background:${soldOut?'var(--surface)':!canAfford?'var(--surface)':'linear-gradient(135deg,var(--gold),var(--robot))'};color:${soldOut||!canAfford?'var(--muted)':'#fff'};transition:opacity .15s;"
+          >${soldOut?'Sold Out':!canAfford?'Not enough chips':'Buy for Squad'}</button>
+        ` : `
+          ${!item.active?`<span style="font-size:0.68rem;color:var(--red);font-weight:600;">Hidden from students</span>`:''}
+        `}
+      </div>
+    `;
+  }).join('');
+}
+
+async function csBuyItem(itemId) {
+  if(!csMySquadId) { showToast('You need to be in a squad to buy items.','error'); return; }
+  const item = csShopItems.find(i=>i.id===itemId);
+  if(!item) { showToast('Item not found.','error'); return; }
+  if(csMySquadBalance < item.price) { showToast('Not enough chips!','error'); return; }
+  const soldOut = item.qty != null && (item.soldCount||0) >= item.qty;
+  if(soldOut) { showToast('This item is sold out.','error'); return; }
+  if(!confirm(`Buy "${item.name}" for 🪙 ${item.price} chips?
+
+Your squad currently has ${csMySquadBalance} chips.
+
+Your teacher will need to approve this.`)) return;
+
+  try {
+    await db.collection('chip_purchases').add({
+      squadId: csMySquadId,
+      squadName: csMySquadName,
+      itemId,
+      itemName: item.name,
+      itemEmoji: item.emoji||'🎁',
+      price: item.price,
+      status: 'pending',
+      requestedBy: currentUser.id,
+      requestedByName: currentUser.name,
+      requestedAt: new Date().toISOString(),
+      resolvedAt: null,
+      resolvedBy: null
+    });
+    showToast(`Purchase request sent! Your teacher will approve it soon. 🪙`, 'success');
+  } catch(e) { showToast('Could not submit purchase: '+(e.message||e), 'error'); }
+}
+
+function csLoadPurchaseHistory() {
+  if(csPurchasesUnsub) csPurchasesUnsub();
+  const isTeacher = currentUser && (currentUser.role==='teacher'||currentUser.role==='teacher-admin'||currentUser.role==='admin');
+  // Use simple query without orderBy to avoid needing composite indexes
+  let q = isTeacher
+    ? db.collection('chip_purchases').limit(100)
+    : (csMySquadId ? db.collection('chip_purchases').where('squadId','==',csMySquadId) : null);
+  if(!q) { renderPurchaseHistory(); return; }
+  csPurchasesUnsub = q.onSnapshot(snap => {
+    csPurchases = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>(b.requestedAt||'').localeCompare(a.requestedAt||''));
+    renderPurchaseHistory();
+  }, (e) => { console.warn('chip_purchases:', e.message); renderPurchaseHistory(); });
+}
+
+function renderPurchaseHistory() {
+  const list = document.getElementById('csPurchaseList');
+  if(!list) return;
+  if(!csPurchases.length) {
+    list.innerHTML = '<p style="color:var(--muted);font-size:var(--text-sm);">No purchases yet.</p>';
+    return;
+  }
+  const statusBadge = {pending:'🟡 Pending',approved:'✅ Approved',rejected:'❌ Rejected'};
+  const statusColor = {pending:'var(--gold)',approved:'var(--green)',rejected:'var(--red)'};
+  list.innerHTML = csPurchases.map(p => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:1.4rem;">${p.itemEmoji||'🎁'}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:var(--text-sm);">${escapeHtml(p.itemName||'Item')}</div>
+        <div style="font-size:0.72rem;color:var(--muted);">${escapeHtml(p.squadName||'')} · ${p.requestedAt?new Date(p.requestedAt).toLocaleDateString():''}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:var(--font-mono);font-weight:700;color:var(--gold);">🪙 ${p.price}</div>
+        <div style="font-size:0.68rem;font-weight:700;color:${statusColor[p.status]||'var(--muted)'};">${statusBadge[p.status]||p.status}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function csPendingApprovalsLoad() {
+  db.collection('chip_purchases').where('status','==','pending').onSnapshot(snap => {
+    const pending = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderPendingApprovals(pending);
+  });
+}
+
+function renderPendingApprovals(list) {
+  const wrap = document.getElementById('csPendingApprovalsWrap');
+  if(!wrap) return;
+  if(!list.length) {
+    wrap.innerHTML = '<p style="color:var(--muted);font-size:var(--text-sm);">No pending purchases.</p>';
+    return;
+  }
+  wrap.innerHTML = list.map(p => `
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:1.5rem;">${p.itemEmoji||'🎁'}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:var(--text-sm);">${escapeHtml(p.itemName||'Item')} <span style="color:var(--muted);font-weight:400;">— ${escapeHtml(p.squadName||'')}</span></div>
+        <div style="font-size:0.72rem;color:var(--muted);">Requested by ${escapeHtml(p.requestedByName||'')} · ${p.requestedAt?new Date(p.requestedAt).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
+      </div>
+      <div style="font-family:var(--font-mono);font-weight:700;color:var(--gold);margin-right:8px;">🪙 ${p.price}</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn-xs grn" onclick="csApprove('${p.id}')">Approve</button>
+        <button class="btn-xs red" onclick="csReject('${p.id}')">Reject</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function csApprove(purchaseId) {
+  const purchase = await db.collection('chip_purchases').doc(purchaseId).get();
+  if(!purchase.exists) { showToast('Purchase not found.','error'); return; }
+  const p = purchase.data();
+
+  try {
+    // Deduct chips from wallet
+    const walletRef = db.collection('chip_wallets').doc(p.squadId);
+    await db.runTransaction(async tx => {
+      const walletDoc = await tx.get(walletRef);
+      const bal = walletDoc.exists ? (walletDoc.data().balance||0) : 0;
+      if(bal < p.price) throw new Error('Insufficient chips');
+      tx.set(walletRef, { balance: bal - p.price, updatedAt: new Date().toISOString() }, {merge:true});
+    });
+
+    // Update purchase status
+    await db.collection('chip_purchases').doc(purchaseId).update({
+      status: 'approved',
+      resolvedAt: new Date().toISOString(),
+      resolvedBy: currentUser.id,
+      resolvedByName: currentUser.name
+    });
+
+    // Increment soldCount on item
+    if(p.itemId) {
+      await db.collection('chip_shop_items').doc(p.itemId).update({
+        soldCount: firebase.firestore.FieldValue.increment(1)
+      });
+    }
+
+    // Log the spend transaction
+    await db.collection('chip_transactions').add({
+      type: 'spend', squadId: p.squadId, squadName: p.squadName,
+      amount: p.price, itemId: p.itemId, itemName: p.itemName,
+      approvedBy: currentUser.id, approvedByName: currentUser.name,
+      createdAt: new Date().toISOString()
+    });
+
+    showToast(`Purchase approved! ${p.squadName} spent 🪙 ${p.price} chips.`, 'success');
+  } catch(e) {
+    if(e.message==='Insufficient chips') {
+      showToast('Squad does not have enough chips! Give them more first.','error');
+    } else {
+      showToast('Could not approve: '+(e.message||e),'error');
+    }
+  }
+}
+
+async function csReject(purchaseId) {
+  if(!confirm('Reject this purchase request?')) return;
+  try {
+    await db.collection('chip_purchases').doc(purchaseId).update({
+      status: 'rejected',
+      resolvedAt: new Date().toISOString(),
+      resolvedBy: currentUser.id,
+      resolvedByName: currentUser.name
+    });
+    showToast('Purchase rejected.','info');
+  } catch(e) { showToast('Could not reject: '+(e.message||e),'error'); }
+}
+
+// ── MANAGE ITEMS ──
+function renderManageTable() {
+  const tbody = document.getElementById('csManageTableBody');
+  if(!tbody) return;
+  if(!csShopItems.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);">No items yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = csShopItems.map(item => `
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px;"><span style="font-size:1.2rem;">${item.emoji||'🎁'}</span> <strong>${escapeHtml(item.name)}</strong></td>
+      <td style="padding:10px;font-family:var(--font-mono);font-weight:700;color:var(--gold);">🪙 ${item.price}</td>
+      <td style="padding:10px;">${CS_CAT_LABELS[item.category]||item.category||'—'}</td>
+      <td style="padding:10px;">${item.qty!=null?`${item.qty-(item.soldCount||0)} / ${item.qty}`:'∞'}</td>
+      <td style="padding:10px;"><span style="font-size:0.72rem;font-weight:700;color:${item.active?'var(--green)':'var(--red)'};">${item.active?'Active':'Hidden'}</span></td>
+      <td style="padding:10px;">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-xs" onclick="csItemEdit('${item.id}')">Edit</button>
+          <button class="btn-xs" onclick="csItemToggle('${item.id}','${!item.active}')">${item.active?'Hide':'Show'}</button>
+          <button class="btn-xs red" onclick="csItemDelete('${item.id}')">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function csSwitchTab(tab) {
+  csTabActive = tab;
+  ['shop','purchases','manage'].forEach(t => {
+    document.getElementById('csPanel'+t.charAt(0).toUpperCase()+t.slice(1))?.classList.toggle('hidden', t!==tab);
+    document.getElementById('csTab'+t.charAt(0).toUpperCase()+t.slice(1))?.classList.toggle('active', t===tab);
+  });
+  if(tab==='purchases') csLoadPurchaseHistory();
+}
+
+async function csItemSave() {
+  const name = document.getElementById('csItemName')?.value.trim();
+  const price = parseInt(document.getElementById('csItemPrice')?.value||'0');
+  const emoji = document.getElementById('csItemEmoji')?.value.trim()||'🎁';
+  const desc = document.getElementById('csItemDesc')?.value.trim();
+  const qty = document.getElementById('csItemQty')?.value ? parseInt(document.getElementById('csItemQty').value) : null;
+  const category = document.getElementById('csItemCat')?.value||'reward';
+  const active = document.getElementById('csItemActive')?.checked ?? true;
+
+  if(!name) { showToast('Enter an item name.','error'); return; }
+  if(!price||price<1) { showToast('Enter a valid price.','error'); return; }
+
+  const btn = document.getElementById('csItemSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const data = { name, price, emoji, desc, qty, category, active, updatedAt: new Date().toISOString() };
+  try {
+    if(csEditingItemId) {
+      await guardPermission(db.collection('chip_shop_items').doc(csEditingItemId).update(data));
+      showToast('Item updated!','success');
+    } else {
+      data.createdAt = new Date().toISOString();
+      data.soldCount = 0;
+      await guardPermission(db.collection('chip_shop_items').add(data));
+      showToast('Item added to shop!','success');
+    }
+    csItemCancelEdit();
+  } catch(e) { showToast('Could not save: '+(e.message||e),'error'); }
+  finally { btn.disabled=false; btn.textContent=csEditingItemId?'Update Item':'Add Item'; }
+}
+
+function csItemEdit(id) {
+  const item = csShopItems.find(i=>i.id===id);
+  if(!item) return;
+  csEditingItemId = id;
+  document.getElementById('csItemName').value = item.name||'';
+  document.getElementById('csItemPrice').value = item.price||10;
+  document.getElementById('csItemEmoji').value = item.emoji||'🎁';
+  document.getElementById('csItemDesc').value = item.desc||'';
+  document.getElementById('csItemQty').value = item.qty!=null?item.qty:'';
+  document.getElementById('csItemCat').value = item.category||'reward';
+  document.getElementById('csItemActive').checked = item.active!==false;
+  document.getElementById('csManageFormTitle').textContent = '✏️ Edit Shop Item';
+  document.getElementById('csItemSaveBtn').textContent = 'Update Item';
+  document.getElementById('csItemCancelBtn').style.display = 'inline-flex';
+  csSwitchTab('manage');
+  document.getElementById('csItemName').scrollIntoView({behavior:'smooth'});
+}
+
+function csItemCancelEdit() {
+  csEditingItemId = null;
+  ['csItemName','csItemDesc','csItemEmoji','csItemQty'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('csItemPrice').value = 10;
+  document.getElementById('csItemCat').value = 'reward';
+  document.getElementById('csItemActive').checked = true;
+  document.getElementById('csManageFormTitle').textContent = '➕ Add Shop Item';
+  document.getElementById('csItemSaveBtn').textContent = 'Add Item';
+  document.getElementById('csItemCancelBtn').style.display = 'none';
+}
+
+async function csItemToggle(id, activeStr) {
+  const active = activeStr === 'true';
+  try {
+    await guardPermission(db.collection('chip_shop_items').doc(id).update({active}));
+    showToast(active?'Item is now visible.':'Item hidden from students.','success');
+  } catch(e) { showToast('Could not update: '+(e.message||e),'error'); }
+}
+
+async function csItemDelete(id) {
+  if(!confirm('Delete this shop item? This cannot be undone.')) return;
+  try {
+    await guardPermission(db.collection('chip_shop_items').doc(id).delete());
+    showToast('Item deleted.','success');
+  } catch(e) { showToast('Could not delete: '+(e.message||e),'error'); }
+}
+// END CHIP SYSTEM
 
 </script>
 </body>
