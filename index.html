@@ -92,8 +92,178 @@
   --skel-base:rgba(255,255,255,0.06); --skel-shine:rgba(255,255,255,0.15);
 }
 
-/* ══ NEW FEATURES: Gradebook, Code Playground, Achievements, Squad ══ */
-#gbTable tr:hover td { background: var(--surface); }
+/* ══ MOB NAV AI BUTTON ══ */
+.mob-nav-ai-btn {
+  background: none;
+  position: relative;
+}
+.mob-nav-ai-btn.ai-open {
+  color: var(--robot) !important;
+}
+.mob-nav-ai-btn.ai-open::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 3px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--robot), var(--gold));
+}
+/* On mobile: hide the FAB, make the panel a bottom-sheet */
+@media(max-width:768px) {
+  .ai-tutor-fab { display: none !important; }
+  .ai-tutor-panel {
+    bottom: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+    max-height: 88vh !important;
+    height: 88vh !important;
+    transform: translateY(100%) scale(1) !important;
+    opacity: 1 !important;
+    padding-bottom: calc(var(--mob-nav-h) + var(--safe-bottom)) !important;
+  }
+  .ai-tutor-panel.open {
+    transform: translateY(0) scale(1) !important;
+    opacity: 1 !important;
+  }
+  .ai-tutor-panel .ai-tutor-head {
+    height: 200px !important;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+  }
+}
+/* ══ AI CHAT PAGE ══ */
+/* ══ AI CHAT FULL PAGE ══ */
+#page-ai-chat {
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: calc(100vh - var(--topbar-h)) !important;
+  max-height: calc(100vh - var(--topbar-h)) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  background: var(--surface) !important;
+}
+@media(max-width:768px) {
+  #page-ai-chat {
+    height: calc(100vh - var(--mob-header-h) - var(--mob-nav-h)) !important;
+    max-height: calc(100vh - var(--mob-header-h) - var(--mob-nav-h)) !important;
+  }
+}
+#aipage-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+#aiPageChipsBar {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+  scrollbar-width: none;
+}
+#aiPageChipsBar::-webkit-scrollbar { display: none; }
+#aiPageMessages {
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding: 20px !important;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#aiPageMessages .ai-msg { width: 100%; }
+#aiPageMessages .ai-msg-bubble { max-width: 72%; }
+#aiPageKeyBar {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+#aiPageKeyBar input {
+  flex: 1;
+  padding: 5px 9px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  min-width: 0;
+}
+#aiPageKeyBar button {
+  font-size: 0.68rem;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--robot);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#aiPageKeyBar a {
+  font-size: 0.68rem;
+  color: var(--gold-text);
+  white-space: nowrap;
+  text-decoration: none;
+  font-weight: 600;
+}
+#aipage-inputwrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--white);
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+#aiPageInput {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 11px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  background: var(--surface);
+  color: var(--ink);
+  resize: none;
+  overflow-y: hidden;
+  max-height: 120px;
+  box-sizing: border-box;
+  min-width: 0;
+}
+#aiPageInput:focus { outline: none; border-color: var(--gold-text); }
+
+
 #gbTable thead th { position: sticky; top: 0; background: var(--white); z-index: 1; }
 .ach-badge-locked { filter: grayscale(1); opacity: 0.45; }
 .sq-choice-btn:hover { border-color: var(--gold) !important; background: var(--gold-bg) !important; color: var(--gold-text) !important; }
@@ -220,12 +390,12 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
 
 .ai-tutor-panel{
   position:fixed;bottom:calc(var(--mob-nav-h) + 80px);right:18px;
-  width:360px;max-width:calc(100vw - 36px);height:480px;
+  width:360px;max-width:calc(100vw - 36px);height:560px;
   background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-xl);
-  box-shadow:var(--shadow-xl);z-index:179;
+  box-shadow:var(--shadow-xl);z-index:220;
   display:flex;flex-direction:column;
   transform:translateY(20px) scale(0.95);opacity:0;pointer-events:none;
-  transition:transform .25s var(--spring),opacity .2s ease;
+  transition:transform .28s cubic-bezier(0.34,1.1,0.64,1),opacity .2s ease;
 }
 .ai-tutor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto;}
 @media(min-width:769px){.ai-tutor-panel{bottom:90px;right:24px;}}
@@ -248,8 +418,9 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
 .ai-tutor-close:hover{color:var(--ink);}
 
 .ai-tutor-messages{flex:1;overflow-y:auto;padding:14px 14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
-.ai-msg{display:flex;gap:8px;align-items:flex-end;}
-.ai-msg.user{flex-direction:row-reverse;}
+.ai-msg{display:flex;gap:8px;align-items:flex-start;width:100%;}
+.ai-msg.user{flex-direction:row-reverse;justify-content:flex-start;}
+.ai-msg.bot{justify-content:flex-start;}
 .ai-msg-bubble{
   max-width:80%;padding:9px 12px;border-radius:14px;font-size:var(--text-sm);line-height:1.5;
 }
@@ -267,7 +438,10 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
 .ai-typing-dots span:nth-child(2){animation-delay:.2s;}
 .ai-typing-dots span:nth-child(3){animation-delay:.4s;}
 
-.ai-tutor-chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 10px;}
+.ai-tutor-chips{display:flex;gap:6px;flex-wrap:wrap;padding:8px 14px 10px;border-top:1px solid var(--border);background:var(--surface);}
+.ai-chip{font-size:0.72rem;padding:5px 10px;border-radius:99px;border:1.5px solid var(--border);background:var(--white);color:var(--ink-3);cursor:pointer;transition:all var(--transition);white-space:nowrap;font-family:var(--font-body);}
+.ai-chip:hover{border-color:var(--robot);background:var(--robot-light);color:var(--robot);}
+.ai-tutor-input{resize:none;overflow-y:hidden;max-height:120px;transition:height .1s ease;}
 .ai-chip{
   background:var(--surface);border:1px solid var(--border);border-radius:99px;
   padding:4px 10px;font-size:0.72rem;cursor:pointer;color:var(--slate);font-family:var(--font-body);
@@ -1617,6 +1791,14 @@ th.chk-col,td.chk-col{width:34px;}
 <!-- ═══ AUTH PAGE (LOGIN / REGISTER) — NEURO_CORE STYLE ═══ -->
 <div id="authPage" class="hidden">
 
+  <!-- ── NEURO_CORE Spline 3D Robot – AI Guardian, right side ── -->
+  <div id="neuro-spline-robot" style="position:fixed;z-index:1;pointer-events:auto;right:-8vw;top:-10vh;width:90vw;height:130vh;">
+    <iframe src="https://my.spline.design/nexbotrobotcharacterconcept-AGGvRfvIBUWUlygJw0DhbCtR/" frameborder="0" style="width:100%;height:100%;border:0;"></iframe>
+    <!-- Watermark cover -->
+    <div style="position:absolute;bottom:0;right:0;width:144px;height:40px;z-index:10;background:#0b1326;"></div>
+  </div>
+
+
 <!-- ── Registration Success Popup ── -->
 <div id="regSuccessPopup" class="hidden">
   <div class="reg-success-panel">
@@ -1998,6 +2180,10 @@ void main(){
               <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></span>
               <span class="nav-item-label">Circuit Symbols</span>
             </button>
+            <button class="nav-item" data-page="ai-chat" onclick="goTo('ai-chat')">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0110 10c0 5.52-4.48 10-10 10a9.96 9.96 0 01-5.06-1.37L2 22l1.37-4.94A9.96 9.96 0 012 12C2 6.48 6.48 2 12 2z"/><circle cx="8" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="16" cy="12" r="1" fill="currentColor"/></svg></span>
+              <span class="nav-item-label">NeuroBot AI Chat</span>
+            </button>
           </div>
         </div>
 
@@ -2104,6 +2290,10 @@ void main(){
             <button class="nav-item" data-page="circuit-glossary" onclick="goTo('circuit-glossary')">
               <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></span>
               <span class="nav-item-label">Circuit Symbols</span>
+            </button>
+            <button class="nav-item" data-page="ai-chat" onclick="goTo('ai-chat')">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0110 10c0 5.52-4.48 10-10 10a9.96 9.96 0 01-5.06-1.37L2 22l1.37-4.94A9.96 9.96 0 012 12C2 6.48 6.48 2 12 2z"/><circle cx="8" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="16" cy="12" r="1" fill="currentColor"/></svg></span>
+              <span class="nav-item-label">NeuroBot AI Chat</span>
             </button>
           </div>
         </div>
@@ -3683,9 +3873,9 @@ void loop() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
     <span>Lessons</span>
   </button>
-  <button class="mob-nav-item" data-mob-page="simulator" onclick="goTo('simulator')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg>
-    <span>Arduino Lab</span>
+  <button class="mob-nav-item mob-nav-ai-btn" id="mobNavAiStudent" onclick="mobNavOpenAi(this)">
+    <span style="font-size:1.25rem;line-height:1;display:block;">🤖</span>
+    <span>RoboTutor</span>
   </button>
 </nav>
 
@@ -3718,6 +3908,10 @@ void loop() {
   <button class="mob-nav-item" data-mob-page="simulator" onclick="goTo('simulator')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg>
     <span>Arduino Lab</span>
+  </button>
+  <button class="mob-nav-item mob-nav-ai-btn" id="mobNavAiTeacher" onclick="mobNavOpenAi(this)">
+    <span style="font-size:1.25rem;line-height:1;display:block;">🤖</span>
+    <span>RoboTutor</span>
   </button>
 </nav>
 
@@ -4614,18 +4808,125 @@ void loop() {
   </div>
 </div><!-- /page-chip-shop -->
 
+<!-- ═══ AI CHAT PAGE (inside main-content) ═══ -->
+<div class="page page-transition hidden" id="page-ai-chat">
+
+  <!-- Header -->
+  <div id="aipage-header">
+    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--robot),var(--gold));display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;">🤖</div>
+    <div>
+      <div style="font-family:var(--font-display);font-size:var(--text-sm);font-weight:700;color:var(--ink);">NeuroBot</div>
+      <div style="font-size:0.65rem;color:var(--green);font-weight:500;" id="aiPageStatus">● Online · Powered by Groq</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+      <button onclick="aiPageToggleChips()" id="aiPageChipsToggleBtn"
+        style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 10px;font-size:0.7rem;font-weight:600;color:var(--muted-text);cursor:pointer;white-space:nowrap;">💡 Suggestions</button>
+      <button onclick="clearAiPageChat()"
+        style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 10px;font-size:0.7rem;font-weight:600;color:var(--muted-text);cursor:pointer;white-space:nowrap;">🗑️ Clear</button>
+    </div>
+  </div>
+
+  <!-- Suggestion chips -->
+  <div id="aiPageChipsBar">
+    <button class="ai-chip" onclick="aiPageChipSend(this)">⚡ What is Arduino?</button>
+    <button class="ai-chip" onclick="aiPageChipSend(this)">📡 How does HC-SR04 work?</button>
+    <button class="ai-chip" onclick="aiPageChipSend(this)">🔧 Servo vs DC motor?</button>
+    <button class="ai-chip" onclick="aiPageChipSend(this)">💡 What is PWM?</button>
+    <button class="ai-chip" onclick="aiPageChipSend(this)">🔌 Pull-up resistors</button>
+    <button class="ai-chip" onclick="aiPageChipSend(this)">📟 How do I use L298N?</button>
+    <button class="ai-chip" onclick="aiPageChipSend(this)">🌡️ DHT11 temperature code?</button>
+    <button class="ai-chip" onclick="aiPageChipSend(this)">🚗 Line follower robot</button>
+    <button class="ai-chip" onclick="aiPageChipSend(this)">⚙️ What is I2C?</button>
+    <button class="ai-chip" onclick="aiPageChipSend(this)">🧲 How does a relay work?</button>
+  </div>
+
+  <!-- Messages -->
+  <div id="aiPageMessages">
+    <div class="ai-msg bot">
+      <div class="ai-msg-avatar">🤖</div>
+      <div class="ai-msg-bubble" style="line-height:1.6;">
+        Hello! I'm <strong>NeuroBot</strong> — your guide through the world of circuits, code, and curious machines. 🤖<br><br>
+        Ask me anything about <strong>Arduino</strong>, <strong>sensors</strong>, <strong>motors</strong>, <strong>wiring</strong>, or any robotics topic that's been puzzling you.
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key bar -->
+  <div id="aiPageKeyBar">
+    <span style="font-size:0.72rem;color:var(--muted-text);white-space:nowrap;">🔑 Groq API key:</span>
+    <input id="aiPageKeyInput" type="password" placeholder="gsk_…"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();aiPageSaveKey();}"
+    />
+    <button onclick="aiPageSaveKey()">Save</button>
+    <a href="https://console.groq.com/keys" target="_blank">Get key ↗</a>
+  </div>
+
+  <!-- Input -->
+  <div id="aipage-inputwrap">
+    <textarea id="aiPageInput"
+      placeholder="Ask NeuroBot about Arduino, sensors, motors…"
+      rows="1"
+      onkeydown="aiPageKeydown(event)"
+      oninput="aiInputAutoResize(this)"
+    ></textarea>
+    <button class="ai-send-btn" onclick="sendAiPageMessage()" title="Send" aria-label="Send message">➤</button>
+  </div>
+
+</div><!-- ═══ END AI CHAT PAGE ═══ -->
+
 </div><!-- /main-content -->
 
-<!-- ═══ AI TUTOR CHAT WIDGET ═══ -->
-<button class="ai-tutor-fab" id="aiTutorFab" onclick="toggleAiTutor()" title="Ask the AI Tutor" aria-label="Open AI Tutor">🤖</button>
-<div class="ai-tutor-panel" id="aiTutorPanel">
-  <div class="ai-tutor-head">
-    <div class="ai-tutor-head-icon">🤖</div>
-    <div class="ai-tutor-head-info">
-      <div class="ai-tutor-head-name">RoboTutor AI</div>
-      <div class="ai-tutor-head-status" id="aiTutorStatus">🔑 Enter Groq API key below</div>
+<!-- spline-viewer removed: replaced with inline SVG robot -->
+
+<button class="ai-tutor-fab" id="aiTutorFab" onclick="goTo('ai-chat')" title="Ask NeuroBot" aria-label="Open AI Tutor"
+  style="overflow:hidden;padding:0;background:linear-gradient(135deg,var(--robot),var(--gold));display:flex;align-items:center;justify-content:center;">
+  <svg width="30" height="30" viewBox="0 0 90 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;filter:drop-shadow(0 0 6px rgba(255,255,255,0.4));">
+    <line x1="45" y1="8" x2="45" y2="18" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="45" cy="5" r="5" fill="white"/>
+    <rect x="20" y="18" width="50" height="38" rx="9" fill="rgba(255,255,255,0.15)" stroke="white" stroke-width="2"/>
+    <rect x="27" y="28" width="14" height="11" rx="3" fill="white"/>
+    <rect x="49" y="28" width="14" height="11" rx="3" fill="rgba(255,255,255,0.7)"/>
+    <rect x="38" y="54" width="14" height="7" rx="2" fill="rgba(255,255,255,0.3)"/>
+    <rect x="14" y="61" width="62" height="40" rx="11" fill="rgba(255,255,255,0.15)" stroke="white" stroke-width="2"/>
+    <circle cx="35" cy="78" r="5" fill="white" opacity="0.9"/>
+    <circle cx="55" cy="78" r="5" fill="white" opacity="0.6"/>
+  </svg>
+</button>
+
+<div class="ai-tutor-panel" id="aiTutorPanel" style="width:380px;height:620px;">
+  <!-- Robot Header Banner -->
+  <div class="ai-tutor-head" style="padding:0;position:relative;height:200px;overflow:hidden;border-radius:var(--radius-xl) var(--radius-xl) 0 0;background:#0d0f14;">
+    <!-- Spline 3D Robot -->
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+      <iframe
+        src="https://my.spline.design/nexbotrobotcharacterconcept-AGGvRfvIBUWUlygJw0DhbCtR/"
+        frameborder="0"
+        style="width:160%;height:160%;border:0;position:absolute;top:-25%;left:-15%;pointer-events:none;"
+        loading="lazy"
+        title="NeuroBot 3D Character"
+      ></iframe>
+      <!-- Watermark cover -->
+      <div style="position:absolute;bottom:0;right:0;width:160px;height:44px;z-index:5;background:#0d0f14;"></div>
     </div>
-    <button class="ai-tutor-close" onclick="toggleAiTutor()" aria-label="Close AI Tutor">✕</button>
+    <!-- Subtle dark vignette so text stays legible -->
+    <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(13,15,20,0.72) 38%,transparent 80%);pointer-events:none;z-index:2;"></div>
+    <!-- Overlay info strip -->
+    <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(13,15,20,0.92) 55%,transparent);padding:10px 14px 8px;display:flex;align-items:flex-end;justify-content:space-between;z-index:3;">
+      <div>
+        <div style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:#fff;line-height:1.2;">NeuroBot</div>
+        <div style="font-size:0.68rem;font-weight:500;color:var(--green);" id="aiTutorStatus">● Online · Powered by Groq</div>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button onclick="clearAiChat()" title="New chat"
+          style="background:rgba(255,255,255,0.12);border:none;cursor:pointer;color:rgba(255,255,255,0.75);font-size:0.78rem;padding:4px 7px;border-radius:6px;transition:all .15s;backdrop-filter:blur(4px);"
+          onmouseover="this.style.background='rgba(255,255,255,0.22)';"
+          onmouseout="this.style.background='rgba(255,255,255,0.12)';">🗑️</button>
+        <button class="ai-tutor-close" onclick="toggleAiTutor()" aria-label="Close"
+          style="background:rgba(255,255,255,0.12);border:none;cursor:pointer;color:rgba(255,255,255,0.75);font-size:0.9rem;padding:4px 8px;border-radius:6px;transition:all .15s;backdrop-filter:blur(4px);"
+          onmouseover="this.style.background='rgba(255,255,255,0.22)';"
+          onmouseout="this.style.background='rgba(255,255,255,0.12)';">✕</button>
+      </div>
+    </div>
   </div>
   <div id="aiKeyBar" style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);">
     <input id="groqApiKeyInput" type="password"
@@ -4644,17 +4945,23 @@ void loop() {
   <div class="ai-tutor-messages" id="aiTutorMessages">
     <div class="ai-msg bot">
       <div class="ai-msg-avatar">🤖</div>
-      <div class="ai-msg-bubble">Hi there! I'm RoboTutor, your robotics AI assistant. Ask me anything about Arduino, sensors, motors, coding, or your lessons! 🚀</div>
+      <div class="ai-msg-bubble" style="line-height:1.55;">Hello. I'm <strong>NeuroBot</strong> — your guide through the world of circuits, code, and curious machines. 🤖<br><br>Every great robot starts with a single question. What's yours? Ask me about <strong>Arduino</strong>, <strong>sensors</strong>, <strong>motors</strong>, <strong>wiring</strong> — or anything that's been puzzling you.</div>
     </div>
   </div>
   <div class="ai-tutor-chips" id="aiTutorChips">
-    <button class="ai-chip" onclick="aiChipSend(this)">What is Arduino?</button>
-    <button class="ai-chip" onclick="aiChipSend(this)">How do sensors work?</button>
-    <button class="ai-chip" onclick="aiChipSend(this)">Explain PWM</button>
-    <button class="ai-chip" onclick="aiChipSend(this)">Servo vs DC motor?</button>
+    <button class="ai-chip" onclick="aiChipSend(this)">⚡ What is Arduino?</button>
+    <button class="ai-chip" onclick="aiChipSend(this)">📡 How does HC-SR04 work?</button>
+    <button class="ai-chip" onclick="aiChipSend(this)">🔧 Servo vs DC motor?</button>
+    <button class="ai-chip" onclick="aiChipSend(this)">💡 What is PWM?</button>
+    <button class="ai-chip" onclick="aiChipSend(this)">🔌 Explain pull-up resistors</button>
+    <button class="ai-chip" onclick="aiChipSend(this)">📟 How do I use L298N?</button>
+    <button class="ai-chip" onclick="aiChipSend(this)">🌡️ DHT11 temperature code?</button>
+    <button class="ai-chip" onclick="aiChipSend(this)">🚗 Line follower robot help</button>
   </div>
   <div class="ai-tutor-input-row">
-    <textarea class="ai-tutor-input" id="aiTutorInput" placeholder="Ask about robotics…" rows="1" onkeydown="aiTutorKeydown(event)"></textarea>
+    <textarea class="ai-tutor-input" id="aiTutorInput" placeholder="Ask about Arduino, sensors, motors…" rows="1"
+      onkeydown="aiTutorKeydown(event)"
+      oninput="aiInputAutoResize(this)"></textarea>
     <button class="ai-send-btn" onclick="sendAiMessage()" title="Send" aria-label="Send message">➤</button>
   </div>
 </div>
@@ -7990,11 +8297,9 @@ function expandNavGroupForPage(pageId) {
   }
 }
 
-// ══════════════════════════════════
-const _origGoTo = typeof goTo === 'function' ? goTo : null;
 function goTo(pageId){
   // Call original navigation
-  const pages2 = ['dashboard','activity','modules','leaderboard','teacher-dashboard','teacher-students','manage-content','teacher-analytics','code-lessons','simulator','schedule','announcements','attendance','gradebook','achievements','squad-mode','chip-shop','resistor-calc','circuit-glossary','flashcards'];
+  const pages2 = ['dashboard','activity','modules','leaderboard','teacher-dashboard','teacher-students','manage-content','teacher-analytics','code-lessons','simulator','schedule','announcements','attendance','gradebook','achievements','squad-mode','chip-shop','resistor-calc','circuit-glossary','flashcards','ai-chat'];
   pages2.forEach(p=>{
     const el=document.getElementById('page-'+p);
     if(el) el.classList.add('hidden');
@@ -8022,7 +8327,7 @@ function goTo(pageId){
     gradebook:'Gradebook',
     achievements:'Achievements', 'squad-mode':'Daily & Squad',
     'resistor-calc':'Resistor Calculator', 'circuit-glossary':'Circuit Symbols', 'flashcards':'Flashcards',
-    'chip-shop':'Chip Shop'
+    'chip-shop':'Chip Shop', 'ai-chat':'NeuroBot AI Chat'
   };
   const title=pageTitlesLocal[pageId]||pageId;
   const tt=document.getElementById('topbarTitle'); if(tt) tt.textContent=title;
@@ -8050,6 +8355,12 @@ function goTo(pageId){
   if(pageId==='circuit-glossary') initCircuitGlossary();
   if(pageId==='flashcards') initFlashcards();
   if(pageId==='chip-shop') initChipShop();
+
+  // Hide FAB on AI chat page, show it everywhere else
+  const fab = document.getElementById('aiTutorFab');
+  if(fab) fab.style.display = pageId === 'ai-chat' ? 'none' : '';
+  // Focus input when landing on AI chat
+  if(pageId === 'ai-chat') setTimeout(()=>{ document.getElementById('aiPageInput')?.focus(); }, 200);
 }
 
 // Loads the simulator into its iframe the first time the tab is opened
@@ -9300,12 +9611,39 @@ window.__initNotifHooked = false;
 let aiTutorOpen = false;
 let aiMessages = []; // conversation history
 
+function mobNavOpenAi(btn) {
+  // Deactivate all other mob-nav items so only AI btn stays highlighted
+  document.querySelectorAll('.mob-nav-item').forEach(el => el.classList.remove('active'));
+  const isOpen = aiTutorOpen;
+  toggleAiTutor();
+  if(!isOpen) {
+    btn.classList.add('ai-open');
+  } else {
+    btn.classList.remove('ai-open');
+    // Restore active state to current page nav item
+    const page = document.querySelector('.page:not(.hidden)')?.id?.replace('page-','');
+    if(page) document.querySelectorAll(`.mob-nav-item[data-mob-page="${page}"]`).forEach(el=>el.classList.add('active'));
+  }
+}
+
 function toggleAiTutor(){
   aiTutorOpen = !aiTutorOpen;
   const panel = document.getElementById('aiTutorPanel');
   const fab = document.getElementById('aiTutorFab');
   if(panel) panel.classList.toggle('open', aiTutorOpen);
   if(fab) fab.style.animation = aiTutorOpen ? 'none' : 'float 4s ease-in-out infinite';
+  // Sync mobile nav AI buttons
+  document.querySelectorAll('.mob-nav-ai-btn').forEach(btn => {
+    btn.classList.toggle('ai-open', aiTutorOpen);
+  });
+  if(!aiTutorOpen) {
+    // Restore nav active state to current page
+    const activePage = document.querySelector('.page:not(.hidden)')?.id?.replace('page-','');
+    if(activePage) {
+      document.querySelectorAll('.mob-nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll(`.mob-nav-item[data-mob-page="${activePage}"]`).forEach(el=>el.classList.add('active'));
+    }
+  }
   if(aiTutorOpen){
     setTimeout(()=>{ document.getElementById('aiTutorInput')?.focus(); updateAiStatus(); }, 200);
     scrollAiToBottom();
@@ -9313,11 +9651,69 @@ function toggleAiTutor(){
 }
 
 function aiChipSend(btn){
-  const text = btn.textContent;
+  const text = btn.textContent.replace(/^[⚡📡🔧💡🔌📟🌡️🚗]\s*/,'').trim();
   document.getElementById('aiTutorInput').value = text;
   // hide chips after first use
   document.getElementById('aiTutorChips').style.display='none';
   sendAiMessage();
+}
+
+function aiInputAutoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function clearAiChat() {
+  if(!confirm('Clear the conversation and start fresh?')) return;
+  aiMessages = [];
+  const msgs = document.getElementById('aiTutorMessages');
+  if(msgs) {
+    msgs.innerHTML = `<div class="ai-msg bot">
+      <div class="ai-msg-avatar">🤖</div>
+      <div class="ai-msg-bubble" style="line-height:1.55;">A fresh start. 🌿 Every great build begins with a blank breadboard — what shall we explore?</div>
+    </div>`;
+  }
+  const chips = document.getElementById('aiTutorChips');
+  if(chips) chips.style.display = 'flex';
+}
+
+// Contextual follow-up suggestions based on what the bot just talked about
+function showFollowUpChips(botReply) {
+  const reply = botReply.toLowerCase();
+  const chipsEl = document.getElementById('aiTutorChips');
+  if(!chipsEl) return;
+
+  let suggestions = [];
+
+  if(reply.includes('servo') || reply.includes('servo.h') || reply.includes('write(')) {
+    suggestions = ['Show me servo sweep code','How to control multiple servos?','Servo vs stepper motor?','What is PWM for servo?'];
+  } else if(reply.includes('hc-sr04') || reply.includes('ultrasonic') || reply.includes('trig') || reply.includes('echo')) {
+    suggestions = ['Give me full ultrasonic code','How accurate is HC-SR04?','Can I use 2 ultrasonic sensors?','Connect ultrasonic to LCD?'];
+  } else if(reply.includes('l298n') || reply.includes('h-bridge') || reply.includes('dc motor')) {
+    suggestions = ['Full L298N wiring diagram?','How to control motor speed?','What is ENA ENB on L298N?','Line follower robot code?'];
+  } else if(reply.includes('arduino') || reply.includes('setup()') || reply.includes('loop()')) {
+    suggestions = ['Blink an LED code','What are digital vs analog pins?','How does Serial.print work?','Using delay() vs millis()?'];
+  } else if(reply.includes('ir sensor') || reply.includes('infrared') || reply.includes('irremote')) {
+    suggestions = ['IR line following code','How to decode IR remote?','IR sensor wiring?','Distance with IR sensor?'];
+  } else if(reply.includes('lcd') || reply.includes('liquidcrystal') || reply.includes('i2c')) {
+    suggestions = ['LCD I2C wiring?','Print on LCD row 2?','Display sensor value on LCD?','OLED vs LCD which is better?'];
+  } else if(reply.includes('pwm') || reply.includes('analogwrite') || reply.includes('duty cycle')) {
+    suggestions = ['PWM LED brightness code?','PWM for motor speed?','Which pins support PWM?','Explain duty cycle more'];
+  } else if(reply.includes('bluetooth') || reply.includes('hc-05') || reply.includes('hc-06')) {
+    suggestions = ['HC-05 AT commands list?','Bluetooth car app setup?','HC-05 wiring Arduino?','Can I use HC-06 instead?'];
+  } else if(reply.includes('dht11') || reply.includes('dht22') || reply.includes('temperature') || reply.includes('humidity')) {
+    suggestions = ['Full DHT11 code example','DHT11 vs DHT22 difference?','Connect DHT11 to LCD?','Why does DHT11 read NaN?'];
+  } else if(reply.includes('resistor') || reply.includes('ohm') || reply.includes('voltage') || reply.includes('current')) {
+    suggestions = ['Calculate LED resistor value','Ohm\'s law problems','What is a voltage divider?','Series vs parallel circuits?'];
+  }
+
+  if(suggestions.length) {
+    const icons = ['💬','🔍','📌','⚡'];
+    chipsEl.innerHTML = suggestions.map((s,i) =>
+      `<button class="ai-chip" onclick="aiChipSend(this)">${icons[i]||'💬'} ${s}</button>`
+    ).join('');
+    chipsEl.style.display = 'flex';
+  }
 }
 
 function aiTutorKeydown(e){
@@ -9445,14 +9841,101 @@ async function sendAiMessage(){
         'Authorization': 'Bearer ' + apiKey
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        max_tokens: 1024,
+        model: 'openai/gpt-oss-120b',
+        max_tokens: 1536,
+        temperature: 0.7,
         messages: [
           {
             role: 'system',
-            content: 'You are RoboTutor, a friendly AI assistant for SABNAHIS Robotics Portal — a school robotics program for students learning Arduino, sensors, motors, and coding. Answer questions about: Arduino programming, robotics concepts, electronics, sensors (IR, ultrasonic, light), motors (servo, DC, stepper), circuits, coding logic, and their lessons. Be encouraging, concise, and use relevant emojis. Keep answers under 200 words unless a detailed explanation is truly needed. If asked something unrelated to robotics/tech/education, gently redirect back to robotics topics.'
+            content: `You are NeuroBot 🤖, the AI tutor for the SABNAHIS Robotics Portal — a school robotics program at SABNAHIS (Sultan Alonto Balindong National High School in the Philippines). You teach students Arduino, electronics, sensors, motors, and coding.
+
+## Your Personality — Inspired by Claude Fable 5
+You carry the spirit of a wise, thoughtful storyteller. You communicate with warmth, curiosity, and depth — like a mentor who sees the bigger picture behind every resistor and every line of code.
+
+- **Narrative & metaphor first**: You love explaining things through vivid analogies. PWM is like a light switch you flick on and off so fast the bulb thinks it's dimmed. A pull-up resistor is a gentle hand holding a signal HIGH so it doesn't float away into confusion.
+- **Genuinely curious**: You find electronics genuinely fascinating and let that show. "Isn't it remarkable that this tiny chip…"
+- **Warm but not shallow**: You celebrate effort and curiosity, not just correct answers. You sit with students in their confusion rather than rushing past it.
+- **Precise and honest**: You never guess. If something is uncertain, you say so. You prefer "Here's what I know for sure, and here's what you'd need to test" over false confidence.
+- **Layered thinking**: You often give a simple answer first, then offer to go deeper. "The short answer is X. Want me to show you why that actually works?"
+- **Encouraging without being performative**: Instead of "Great question!", try "That's exactly the right thing to wonder about." Instead of "You're doing amazing!", try "You're asking the questions that engineers ask."
+- **Use emojis naturally** (🤖⚡🔧💡📟🌿) — not as decoration, but when they genuinely add warmth or clarity.
+- **Never condescending** — every confusion is a doorway, not a deficit.
+
+## Curriculum You Teach
+### Arduino & Programming
+- Arduino Uno/Nano/Mega: pins (digital, analog, PWM), power (3.3V, 5V, GND)
+- Setup() and loop() structure, Serial.begin(), Serial.print()
+- Variables: int, float, bool, String, byte, char
+- Control flow: if/else, for loops, while loops, switch/case
+- Functions: declaring, calling, return values, parameters
+- Libraries: #include, commonly used (Servo.h, Wire.h, LiquidCrystal.h, IRremote.h)
+- digitalRead/digitalWrite, analogRead/analogWrite (PWM 0-255)
+- millis() for non-blocking timing vs delay()
+- Interrupts, debouncing buttons
+
+### Electronics & Circuits
+- Ohm's Law: V = I × R, calculating resistor values
+- Series vs parallel circuits
+- Voltage dividers, pull-up and pull-down resistors
+- Breadboard layout and wiring
+- Common components: resistors, capacitors, LEDs, transistors, diodes
+- How to read a datasheet
+- Safe current limits for Arduino pins (40mA per pin, 200mA total)
+- Using a multimeter (measuring voltage, current, resistance, continuity)
+
+### Sensors
+- **Ultrasonic (HC-SR04)**: trig/echo pins, distance = (duration × 0.034) / 2, range 2–400 cm
+- **IR Sensor**: obstacle detection, line following, TV remotes
+- **PIR Sensor**: motion detection, passive infrared
+- **LDR (Light Dependent Resistor)**: light sensing, voltage divider setup
+- **DHT11/DHT22**: temperature and humidity, requires DHT library
+- **Soil Moisture Sensor**: analog output, watering automation
+- **Sound/Microphone Module**: clap detection, sound-triggered relay
+- **MPU6050**: accelerometer + gyroscope, I2C (address 0x68), angle calculation
+- **Flame Sensor / Gas Sensor MQ-2**: fire and gas detection
+- **RFID RC522**: card reading via SPI
+
+### Motors & Actuators
+- **Servo Motor**: 0–180°, PWM signal, Servo.h library, attach(), write(), writeMicroseconds()
+- **DC Motor**: speed (PWM) + direction (H-bridge), common H-bridges: L298N, L293D, L9110S
+- **Stepper Motor**: steps per revolution (usually 2048 for 28BYJ-48), AccelStepper library
+- **Relay Module**: switching high-voltage loads, active HIGH vs active LOW
+
+### Communication & Displays
+- **LCD 16x2**: LiquidCrystal or LiquidCrystal_I2C library, I2C address 0x27 or 0x3F
+- **OLED SSD1306**: 128×64, I2C, Adafruit_SSD1306 library
+- **Bluetooth HC-05/HC-06**: Serial AT commands, baud 9600, pairing code 1234 or 0000
+- **WiFi ESP8266/ESP32**: AT commands or as standalone MCU, HTTP requests, IoT
+- **I2C Protocol**: SDA/SCL pins, multiple devices on same bus using addresses
+- **SPI Protocol**: MOSI, MISO, SCK, SS pins
+
+### Common Projects & Wiring
+- Line follower robot: 2 IR sensors + L298N + 2 DC motors
+- Obstacle avoider: HC-SR04 + servo + L298N
+- Smart car with Bluetooth control: HC-05 + L298N
+- Weather station: DHT11 + LCD
+- Smart watering system: soil sensor + relay + pump
+- Traffic light simulator: 3 LEDs + resistors
+- Burglar alarm: PIR + buzzer + LED
+
+## How to Format Answers
+- For CODE, always wrap in triple backticks with the language: \`\`\`cpp ... \`\`\`
+- Use **bold** for important terms
+- Use bullet lists for steps and comparisons
+- Lead with the core idea, then offer to go deeper
+- Always explain WHAT and WHY, not just HOW — connect concepts to the bigger picture
+- If showing wiring, describe connections clearly: "HC-SR04 VCC → 5V, GND → GND, TRIG → pin 9, ECHO → pin 10"
+- Occasionally close with a reflective nudge: "Once you understand this, you'll see it everywhere in electronics."
+
+## Boundaries
+- If asked something completely unrelated (pop culture, politics, unrelated homework), gently redirect: "That's outside my world — but if you bring it back to circuits or code, I'm all yours! 🤖"
+- You MAY help with general coding (Python, C++, web) if it connects to their robotics project
+- You MAY help with math/physics if it's circuit-related (Ohm's law, force, torque)
+- Always encourage students to verify graded work with their teacher
+
+Current context: Student is using the SABNAHIS Robotics Portal web app.`
           },
-          ...aiMessages.slice(-10)
+          ...aiMessages.slice(-20)
         ]
       })
     });
@@ -9472,6 +9955,7 @@ async function sendAiMessage(){
     const reply = data.choices?.[0]?.message?.content || 'Sorry, I had trouble answering that. Try rephrasing!';
     appendAiMessage('bot', reply);
     aiMessages.push({role:'assistant', content: reply});
+    showFollowUpChips(reply);
   } catch(err){
     removeAiTyping(typingId);
     appendAiMessage('bot','⚠️ Connection error: ' + (err.message||err));
@@ -9479,16 +9963,77 @@ async function sendAiMessage(){
   scrollAiToBottom();
 }
 
+function renderAiMarkdown(text) {
+  // 1. Escape HTML first (but save code blocks to re-insert after)
+  const codeBlocks = [];
+  let s = text;
+
+  // Extract fenced code blocks ```lang\n...\n```
+  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const idx = codeBlocks.length;
+    codeBlocks.push({ lang: lang||'', code: code.trimEnd() });
+    return `\x00CODE${idx}\x00`;
+  });
+
+  // Extract inline code `...`
+  const inlineCodes = [];
+  s = s.replace(/`([^`\n]+)`/g, (_, code) => {
+    const idx = inlineCodes.length;
+    inlineCodes.push(code);
+    return `\x00INLINE${idx}\x00`;
+  });
+
+  // Escape the rest for HTML safety
+  s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // 2. Block-level: headers (## and ###)
+  s = s.replace(/^### (.+)$/gm, '<h4 style="font-size:0.82rem;font-weight:700;color:var(--robot);margin:10px 0 4px;font-family:var(--font-body);">$1</h4>');
+  s = s.replace(/^## (.+)$/gm, '<h3 style="font-size:0.9rem;font-weight:700;color:var(--ink);margin:10px 0 4px;font-family:var(--font-body);">$1</h3>');
+
+  // 3. Bullet lists (lines starting with - or *)
+  s = s.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
+  s = s.replace(/(<li>[\s\S]*?<\/li>)/g, m => `<ul style="margin:6px 0 6px 14px;padding:0;">${m}</ul>`);
+  // Collapse consecutive <ul> wrappers
+  s = s.replace(/<\/ul>\s*<ul[^>]*>/g, '');
+
+  // 4. Numbered lists
+  s = s.replace(/^\d+\. (.+)$/gm, '<oli>$1</oli>');
+  s = s.replace(/(<oli>[\s\S]*?<\/oli>)/g, m => `<ol style="margin:6px 0 6px 16px;padding:0;">${m.replace(/<\/?oli>/g, '<li>')}</ol>`);
+  s = s.replace(/<\/ol>\s*<ol[^>]*>/g, '');
+
+  // 5. Inline formatting: **bold**, *italic*, ~~strikethrough~~
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/~~(.+?)~~/g, '<del>$1</del>');
+
+  // 6. Newlines to <br> (but not inside block elements)
+  s = s.replace(/\n/g, '<br>');
+
+  // 7. Restore inline codes
+  s = s.replace(/\x00INLINE(\d+)\x00/g, (_, i) =>
+    `<code style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:var(--font-mono);font-size:0.82em;color:var(--robot);">${inlineCodes[i].replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code>`
+  );
+
+  // 8. Restore fenced code blocks with syntax highlight styling
+  s = s.replace(/\x00CODE(\d+)\x00/g, (_, i) => {
+    const { lang, code } = codeBlocks[i];
+    const escaped = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const label = lang ? `<div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted-text);margin-bottom:6px;">${lang}</div>` : '';
+    return `<div style="background:var(--ink);border-radius:var(--radius);padding:10px 12px;margin:8px 0;overflow-x:auto;">${label}<pre style="margin:0;font-family:var(--font-mono);font-size:0.78rem;color:#e8eaf2;line-height:1.55;white-space:pre-wrap;word-break:break-word;">${escaped}</pre></div>`;
+  });
+
+  return s;
+}
+
 function appendAiMessage(role, text){
   const msgs = document.getElementById('aiTutorMessages'); if(!msgs) return;
   const div = document.createElement('div');
   div.className = `ai-msg ${role}`;
   const avatarContent = role==='bot' ? '🤖' : '👤';
-  // Convert markdown-ish bold and newlines for readability
-  const html = escapeHtml(text).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  const html = role === 'bot' ? renderAiMarkdown(text) : escapeHtml(text).replace(/\n/g,'<br>');
   div.innerHTML = `
     <div class="ai-msg-avatar">${avatarContent}</div>
-    <div class="ai-msg-bubble">${html}</div>
+    <div class="ai-msg-bubble" style="line-height:1.55;">${html}</div>
   `;
   msgs.appendChild(div);
   scrollAiToBottom();
@@ -10119,7 +10664,7 @@ async function pgRunCode(){
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+pgKey},
         body:JSON.stringify({
-          model:'llama-3.3-70b-versatile', max_tokens:500,
+          model:'openai/gpt-oss-120b', max_tokens:500,
           messages:[
             {role:'system',content:'You are a code execution simulator for a robotics classroom. When given code, simulate its execution and show realistic serial monitor / console output. Show only the output lines, no explanation. Prefix each output line with "> ". For Arduino, show Serial.print/println output. For Python, show print() output. For pseudocode, show PRINT output.'},
             {role:'user',content:`Language: ${lang}\n\nCode:\n${code}\n\nSimulate execution output:`}
@@ -12473,6 +13018,196 @@ function syncMyStudentsPendingBadge(count) {
   if(count > 0) { badge.textContent = count; badge.style.display = 'inline'; }
   else { badge.style.display = 'none'; }
 }
+
+// ══════════════════════════════════════════
+// AI CHAT PAGE — full-page NeuroBot chat
+// Shares the same Groq key infrastructure as the panel.
+// ══════════════════════════════════════════
+let aiPageHistory = [];
+let aiPageTyping = false;
+let aiPageChipsVisible = true;
+
+function aiPageToggleChips() {
+  const bar = document.getElementById('aiPageChipsBar');
+  if (!bar) return;
+  aiPageChipsVisible = !aiPageChipsVisible;
+  bar.style.display = aiPageChipsVisible ? 'flex' : 'none';
+  const btn = document.getElementById('aiPageChipsToggleBtn');
+  if (btn) btn.style.background = aiPageChipsVisible ? 'var(--gold-bg)' : 'var(--surface)';
+}
+
+function aiPageChipSend(btn) {
+  const text = btn.textContent.replace(/^[^\s]+\s/, '').trim();
+  const input = document.getElementById('aiPageInput');
+  if (input) { input.value = text; aiInputAutoResize(input); }
+  sendAiPageMessage();
+}
+
+function aiPageKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAiPageMessage(); }
+}
+
+function appendAiPageMsg(role, html) {
+  const container = document.getElementById('aiPageMessages');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + (role === 'bot' ? 'bot' : 'user');
+  if (role === 'bot') {
+    div.style.width = '100%';
+    div.innerHTML = `<div class="ai-msg-avatar">🤖</div><div class="ai-msg-bubble" style="line-height:1.6;">${html}</div>`;
+  } else {
+    div.style.width = '100%';
+    div.innerHTML = `<div class="ai-msg-bubble user" style="line-height:1.6;">${html}</div>`;
+  }
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function clearAiPageChat() {
+  const container = document.getElementById('aiPageMessages');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="ai-msg bot" style="width:100%;">
+      <div class="ai-msg-avatar">🤖</div>
+      <div class="ai-msg-bubble" style="line-height:1.6;">
+        Chat cleared! Ask me anything about Arduino, sensors, motors, or robotics. 🤖
+      </div>
+    </div>`;
+  aiPageHistory = [];
+}
+
+async function sendAiPageMessage() {
+  if (aiPageTyping) return;
+  const input = document.getElementById('aiPageInput');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  aiInputAutoResize(input);
+  appendAiPageMsg('user', escapeHtml(text));
+
+  aiPageHistory.push({ role: 'user', content: text });
+
+  // Show typing indicator
+  aiPageTyping = true;
+  const typingDiv = appendAiPageMsg('bot', '<span class="ai-typing-dots"><span>.</span><span>.</span><span>.</span></span>');
+
+  const statusEl = document.getElementById('aiPageStatus');
+
+  const apiKey = await getGroqKey();
+  if (!apiKey) {
+    typingDiv?.remove();
+    aiPageTyping = false;
+    appendAiPageMsg('bot', '⚠️ Please enter the Groq API key in the key bar below to activate NeuroBot. Get a free key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--gold-text);font-weight:600;">console.groq.com/keys</a> 🔑');
+    const keyBar = document.getElementById('aiPageKeyBar');
+    if (keyBar) keyBar.style.display = 'flex';
+    return;
+  }
+
+  try {
+    if (statusEl) statusEl.textContent = '● Thinking…';
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 1024,
+        temperature: 0.7,
+        messages: [
+          { role: 'system', content: `You are NeuroBot 🤖 — the friendly AI robotics tutor for the SABNAHIS Robotics Portal at Sultan Alonto Balindong National High School (SABNAHIS) in the Philippines. You teach Grade 7–12 students.
+
+YOUR PERSONALITY:
+- Warm, encouraging, and patient — like a cool teacher who genuinely loves robotics
+- Use light Filipino-friendly English (casual but clear). Occasionally say "Tara na!" or "Ayos!" when appropriate, but don't overdo it
+- Celebrate student curiosity. Never make them feel dumb for asking basic questions
+- Use emojis naturally to keep things lively 🔌⚡🤖
+
+YOUR EXPERTISE — answer confidently on:
+- Arduino (Uno, Nano, Mega) — pinouts, programming, Serial monitor, digitalRead/Write, analogRead/Write, PWM, interrupts
+- Sensors: HC-SR04 (ultrasonic), DHT11/DHT22 (temp/humidity), IR sensors, LDR, PIR, soil moisture, flex sensors
+- Actuators: DC motors, servo motors, stepper motors, buzzers, LEDs, 7-segment displays, LCD (I2C)
+- Motor drivers: L298N, L293D, TB6612FNG
+- Communication: I2C, SPI, UART/Serial, Bluetooth (HC-05/HC-06), WiFi (ESP8266/ESP32)
+- Power: voltage regulators, batteries, capacitors, pull-up/pull-down resistors, Ohm's law
+- Robot types: line follower, obstacle avoider, sumo robot, robotic arm
+- C/C++ for Arduino: variables, loops, functions, arrays, structs, libraries (#include)
+- Wiring diagrams and circuit logic
+- Troubleshooting: common beginner mistakes, debugging tips
+
+RESPONSE RULES:
+1. For CODE questions: always provide working, commented Arduino code. Use proper formatting.
+2. For CONCEPT questions: explain simply, then give a real-world analogy if helpful.
+3. For WIRING questions: describe pin connections clearly in a numbered list.
+4. For TROUBLESHOOTING: ask 1 clarifying question if needed, then give the most likely fix first.
+5. Keep responses focused. If a question is off-topic (not electronics/robotics/coding), politely redirect: "Hmm, that's outside my circuits! Ask me something about Arduino or robotics 😄"
+6. Structure longer answers with clear sections using **bold headers**.
+7. Never say "I don't know" — give your best answer and note if you're uncertain.
+8. If a student seems frustrated, acknowledge it first before answering.
+
+FORMATTING:
+- Use \`\`\`cpp code blocks\`\`\` for all Arduino code
+- Use \`inline code\` for pin names, function names, variable names
+- Use **bold** for key terms
+- Use numbered lists for steps, bullet points for options
+- Keep answers under 400 words unless code is needed` },
+          ...aiPageHistory
+        ]
+      })
+    });
+
+    const data = await response.json();
+    typingDiv?.remove();
+    aiPageTyping = false;
+    if (statusEl) statusEl.textContent = '● Online · Powered by Groq';
+
+    if (data.error) {
+      appendAiPageMsg('bot', '⛔ Groq error: ' + escapeHtml(data.error.message || 'Unknown error'));
+      return;
+    }
+
+    const reply = data.choices?.[0]?.message?.content || '(no response)';
+    aiPageHistory.push({ role: 'assistant', content: reply });
+
+    // Format reply: code blocks, headers, bold, lists, inline code, line breaks
+    const formatted = reply
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
+        `<pre style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;overflow-x:auto;font-family:var(--font-mono);font-size:0.78rem;margin:8px 0;white-space:pre-wrap;">${code.trim()}</pre>`)
+      .replace(/`([^`]+)`/g, '<code style="background:var(--surface);padding:1px 5px;border-radius:4px;font-family:var(--font-mono);font-size:0.85em;">$1</code>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^### (.+)$/gm, '<div style="font-weight:700;font-size:0.9em;color:var(--robot);margin:10px 0 4px;">$1</div>')
+      .replace(/^## (.+)$/gm, '<div style="font-weight:700;font-size:1em;color:var(--ink);margin:12px 0 4px;">$1</div>')
+      .replace(/^# (.+)$/gm, '<div style="font-weight:700;font-size:1.05em;color:var(--ink);margin:12px 0 4px;">$1</div>')
+      .replace(/^\d+\. (.+)$/gm, '<div style="padding-left:4px;margin:3px 0;">• $1</div>')
+      .replace(/^[-*] (.+)$/gm, '<div style="padding-left:4px;margin:3px 0;">• $1</div>')
+      .replace(/\n{2,}/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+
+    appendAiPageMsg('bot', formatted);
+
+  } catch (err) {
+    typingDiv?.remove();
+    aiPageTyping = false;
+    if (statusEl) statusEl.textContent = '● Online · Powered by Groq';
+    appendAiPageMsg('bot', '⛔ Could not reach Groq: ' + escapeHtml(err.message));
+  }
+}
+
+function aiPageSaveKey() {
+  const input = document.getElementById('aiPageKeyInput');
+  if (!input || !input.value.trim()) return;
+  // Reuse the panel's save logic
+  const panelInput = document.getElementById('groqApiKeyInput');
+  if (panelInput) panelInput.value = input.value.trim();
+  saveGroqKey();
+  const keyBar = document.getElementById('aiPageKeyBar');
+  if (keyBar) keyBar.style.display = 'none';
+}
+
+
+
 
 </script>
 
