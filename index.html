@@ -140,7 +140,6 @@
 /* ══ AI CHAT FULL PAGE ══ */
 #page-ai-chat {
   padding: 0 !important;
-  display: flex !important;
   flex-direction: column !important;
   width: 100% !important;
   height: calc(100vh - var(--topbar-h)) !important;
@@ -148,6 +147,9 @@
   overflow: hidden !important;
   box-sizing: border-box !important;
   background: var(--surface) !important;
+}
+#page-ai-chat:not(.hidden) {
+  display: flex !important;
 }
 @media(max-width:768px) {
   #page-ai-chat {
@@ -1070,6 +1072,48 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
 .toast.success{border-left:3px solid var(--green);}
 .toast.error{border-left:3px solid var(--red);}
 .toast.info{border-left:3px solid var(--gold);}
+
+/* ══ ANNOUNCEMENT POPUP OVERLAY ══ */
+#annPopupOverlay{
+  position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.45);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  animation:fadeIn .2s ease;
+}
+#annPopupOverlay.hidden{display:none;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#annPopupBox{
+  background:var(--white);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.22);
+  width:100%;max-width:480px;max-height:80vh;overflow-y:auto;
+  animation:popUp .25s var(--spring);
+}
+@keyframes popUp{from{transform:scale(0.92) translateY(16px);opacity:0}to{transform:none;opacity:1}}
+#annPopupBox .ann-popup-header{
+  display:flex;align-items:center;gap:10px;
+  padding:18px 20px 0;
+}
+#annPopupBox .ann-popup-icon{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;flex-shrink:0;
+}
+#annPopupBox .ann-popup-icon.announce{background:#fef3c7;color:#d97706;}
+#annPopupBox .ann-popup-icon.quiz{background:#ede9fe;color:#7c3aed;}
+#annPopupBox .ann-popup-icon.reminder{background:#dbeafe;color:#2563eb;}
+#annPopupBox .ann-popup-body{padding:12px 20px 18px;}
+#annPopupBox .ann-popup-title{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--ink);margin-bottom:6px;}
+#annPopupBox .ann-popup-msg{font-size:var(--text-sm);color:var(--ink-3);line-height:1.6;white-space:pre-wrap;}
+#annPopupBox .ann-popup-meta{font-size:0.72rem;color:var(--muted-text);margin-top:8px;}
+#annPopupBox .ann-popup-footer{
+  padding:12px 20px 18px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+#annPopupNav{display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--muted-text);}
+#annPopupNav button{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 10px;cursor:pointer;font-size:0.75rem;color:var(--ink);}
+#annPopupNav button:hover{border-color:var(--gold-text);}
+.ann-popup-dismiss-row{display:flex;align-items:center;gap:8px;}
+.ann-popup-dismiss-row label{font-size:0.75rem;color:var(--muted-text);cursor:pointer;display:flex;align-items:center;gap:5px;}
+.ann-popup-close-btn{padding:7px 18px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius);font-weight:700;font-size:var(--text-sm);cursor:pointer;}
+.ann-popup-close-btn:hover{background:var(--gold-text);}
 
 /* ══════ SCROLL TOP ══════ */
 .scroll-top-btn{position:fixed;bottom:80px;right:16px;z-index:400;width:40px;height:40px;border-radius:50%;background:var(--gold);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);transition:opacity .2s,transform .2s;opacity:0;transform:translateY(10px);pointer-events:none;}
@@ -4046,6 +4090,31 @@ void loop() {
       <textarea id="annBody" placeholder="Type your announcement…" rows="3"></textarea>
     </div>
     <div class="form-grid-2">
+      <div class="form-field">
+        <label for="annTarget">Send To</label>
+        <select id="annTarget" onchange="updateAnnSectionField()">
+          <option value="all">🌐 Everyone</option>
+          <option value="grade">📚 Specific Grade Level</option>
+          <option value="section">👥 Specific Section</option>
+        </select>
+      </div>
+      <div class="form-field" id="annTargetGradeWrap" style="display:none;">
+        <label for="annTargetGrade">Grade Level</label>
+        <select id="annTargetGrade">
+          <option value="7">Grade 7</option>
+          <option value="8">Grade 8</option>
+          <option value="9">Grade 9</option>
+          <option value="10">Grade 10</option>
+          <option value="11">Grade 11</option>
+          <option value="12">Grade 12</option>
+        </select>
+      </div>
+      <div class="form-field" id="annTargetSectionWrap" style="display:none;">
+        <label for="annTargetSection">Section Name</label>
+        <input id="annTargetSection" placeholder="e.g. Newton, Einstein…"/>
+      </div>
+    </div>
+    <div class="form-grid-2">
       <div class="form-field" style="margin-bottom:0;">
         <label for="annExpiresIn">Expires in (optional)</label>
         <select id="annExpiresIn">
@@ -4058,7 +4127,7 @@ void loop() {
           <option value="72">3 days</option>
           <option value="168">7 days</option>
         </select>
-        <span style="font-size:0.7rem;color:var(--muted-text);margin-top:3px;">It drops off the board and bell automatically once this time is up. Leave on "No expiration" to keep it up indefinitely.</span>
+        <span style="font-size:0.7rem;color:var(--muted-text);margin-top:3px;">Drops off automatically once expired. Leave blank to keep indefinitely.</span>
       </div>
       <label style="display:flex;align-items:center;gap:7px;font-size:var(--text-sm);color:var(--slate);cursor:pointer;align-self:end;padding-bottom:9px;">
         <input type="checkbox" id="annPin" style="width:16px;height:16px;"/> 📌 Pin to top
@@ -8829,6 +8898,114 @@ function createToastContainer(){
 }
 
 // ══════════════════════════════════════════════════════
+// ANNOUNCEMENT POPUP SYSTEM
+// ══════════════════════════════════════════════════════
+(function injectAnnPopupHTML(){
+  const el = document.createElement('div');
+  el.id = 'annPopupOverlay';
+  el.className = 'hidden';
+  el.innerHTML = `
+    <div id="annPopupBox">
+      <div class="ann-popup-header">
+        <div class="ann-popup-icon announce" id="annPopupIcon">📢</div>
+        <div>
+          <div class="ann-popup-title" id="annPopupTitle"></div>
+          <div class="ann-popup-meta" id="annPopupMeta"></div>
+        </div>
+      </div>
+      <div class="ann-popup-body">
+        <div class="ann-popup-msg" id="annPopupMsg"></div>
+      </div>
+      <div class="ann-popup-footer">
+        <div id="annPopupNav">
+          <button id="annPopupPrev" onclick="annPopupStep(-1)">‹ Prev</button>
+          <span id="annPopupCounter"></span>
+          <button id="annPopupNext" onclick="annPopupStep(1)">Next ›</button>
+        </div>
+        <div class="ann-popup-dismiss-row">
+          <label><input type="checkbox" id="annPopupDontShow"/> Don't show again</label>
+          <button class="ann-popup-close-btn" onclick="closeAnnPopup()">Got it ✓</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+  // Close on backdrop click
+  el.addEventListener('click', e=>{ if(e.target===el) closeAnnPopup(); });
+})();
+
+let _annPopupQueue  = [];  // announcements to show
+let _annPopupIndex  = 0;
+
+function getAnnDismissed(){
+  try{ return JSON.parse(localStorage.getItem('sabnahis_ann_dismissed')||'[]'); }catch(e){ return []; }
+}
+function setAnnDismissed(ids){
+  try{ localStorage.setItem('sabnahis_ann_dismissed', JSON.stringify(ids)); }catch(e){}
+}
+
+function showAnnPopupQueue(anns){
+  const dismissed = getAnnDismissed();
+  const isStudent = currentUser && currentUser.role === 'student';
+  if(!isStudent) return; // only popup for students
+
+  // Filter: not expired, not dismissed
+  const queue = anns.filter(n => !isAnnExpired(n) && !dismissed.includes(n.id));
+  if(!queue.length) return;
+
+  _annPopupQueue = queue;
+  _annPopupIndex = 0;
+  renderAnnPopupSlide();
+  document.getElementById('annPopupOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderAnnPopupSlide(){
+  const n = _annPopupQueue[_annPopupIndex];
+  if(!n) return;
+  const iconMap = {announce:'📢', quiz:'📝', reminder:'⏰'};
+  const type = n.type || 'announce';
+  const icon = document.getElementById('annPopupIcon');
+  icon.textContent = iconMap[type] || '🔔';
+  icon.className = `ann-popup-icon ${type}`;
+  document.getElementById('annPopupTitle').textContent = n.title || 'Announcement';
+  document.getElementById('annPopupMsg').textContent   = n.body  || '';
+  const ts = n.createdAt?.toDate ? n.createdAt.toDate() : null;
+  document.getElementById('annPopupMeta').textContent  = [
+    n.createdByName || '',
+    ts ? relativeTime(ts) : ''
+  ].filter(Boolean).join(' · ');
+  // Nav visibility
+  const total = _annPopupQueue.length;
+  document.getElementById('annPopupCounter').textContent = total > 1 ? `${_annPopupIndex+1} / ${total}` : '';
+  document.getElementById('annPopupPrev').style.display = (_annPopupIndex > 0 && total > 1) ? '' : 'none';
+  document.getElementById('annPopupNext').style.display = (_annPopupIndex < total-1 && total > 1) ? '' : 'none';
+  document.getElementById('annPopupDontShow').checked = false;
+}
+
+function annPopupStep(dir){
+  _annPopupIndex = Math.max(0, Math.min(_annPopupQueue.length-1, _annPopupIndex + dir));
+  renderAnnPopupSlide();
+}
+
+function closeAnnPopup(){
+  const dontShow = document.getElementById('annPopupDontShow')?.checked;
+  if(dontShow && _annPopupQueue[_annPopupIndex]){
+    const dismissed = getAnnDismissed();
+    const id = _annPopupQueue[_annPopupIndex].id;
+    if(!dismissed.includes(id)){ dismissed.push(id); setAnnDismissed(dismissed); }
+    // Remove from queue
+    _annPopupQueue.splice(_annPopupIndex, 1);
+    if(_annPopupQueue.length){
+      _annPopupIndex = Math.min(_annPopupIndex, _annPopupQueue.length-1);
+      renderAnnPopupSlide();
+      return;
+    }
+  }
+  document.getElementById('annPopupOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// ══════════════════════════════════════════════════════
 // CODE LESSONS — hardcoded built-ins + Firestore custom
 // ══════════════════════════════════════════════════════
 
@@ -9293,26 +9470,48 @@ function initNotifications(user, role){
 
   // Subscribe to notifications for this user from Firestore
   if(notifUnsubscribe) notifUnsubscribe();
+
+  const myGrade   = (user.gradeLevel||'').toString().trim();
+  const mySection = (user.section||'').toLowerCase().trim();
+
   notifUnsubscribe = db.collection('notifications')
-    .where('targetAll','==',true)
     .orderBy('createdAt','desc')
     .limit(30)
     .onSnapshot(snap=>{
-      const global = snap.docs.map(d=>({id:d.id,...d.data()})).filter(n=>!isAnnExpired(n));
+      const all = snap.docs.map(d=>({id:d.id,...d.data()})).filter(n=>{
+        if(isAnnExpired(n)) return false;
+        if(n.targetAll)    return true;
+        if(n.targetUid && n.targetUid === user.uid) return true;
+        if(n.targetGrade   && n.targetGrade.toString() === myGrade) return true;
+        if(n.targetSection && mySection && mySection.includes(n.targetSection.toLowerCase().trim())) return true;
+        return false;
+      });
+
       // also load user-specific
       db.collection('notifications').where('targetUid','==',user.uid)
         .orderBy('createdAt','desc').limit(20).get().then(snap2=>{
           const personal = snap2.docs.map(d=>({id:d.id,...d.data()}));
-          const all = [...personal,...global].sort((a,b)=>{
+          const combined = [...personal,...all].sort((a,b)=>{
             const ta = a.createdAt?.toMillis?.() || 0;
             const tb = b.createdAt?.toMillis?.() || 0;
             return tb - ta;
           });
-          // dedupe
           const seen = new Set();
-          notifItems = all.filter(n=>{ if(seen.has(n.id)) return false; seen.add(n.id); return true; });
+          notifItems = combined.filter(n=>{ if(seen.has(n.id)) return false; seen.add(n.id); return true; });
           updateNotifBadge();
           renderNotifList();
+
+          // Show popup for students on new unseen announcements
+          if(role === 'student'){
+            const readIds = JSON.parse(localStorage.getItem('sabnahis_notif_read')||'[]');
+            const dismissed = getAnnDismissed();
+            const newAnns = notifItems.filter(n=>
+              !readIds.includes(n.id) &&
+              !dismissed.includes(n.id) &&
+              !isAnnExpired(n)
+            );
+            if(newAnns.length) showAnnPopupQueue(newAnns);
+          }
         });
     }, ()=>{});
 }
@@ -9429,23 +9628,42 @@ let annUnsubscribe = null;
 let annFilterType = 'all';
 let annEditingId = null;
 
+function updateAnnSectionField(){
+  const val = document.getElementById('annTarget')?.value || 'all';
+  document.getElementById('annTargetGradeWrap').style.display  = val === 'grade'   ? '' : 'none';
+  document.getElementById('annTargetSectionWrap').style.display = val === 'section' ? '' : 'none';
+}
+
 function initAnnouncementBoard(){
   const isTeacher = currentUser && (currentUser.role==='teacher'||currentUser.role==='admin'||currentUser.role==='teacher-admin');
   document.getElementById('annComposerCard')?.classList.toggle('hidden', !isTeacher);
   const sub = document.getElementById('annPageSub');
   if(sub) sub.textContent = isTeacher
-    ? 'Post announcements, quiz alerts, and reminders for the whole class.'
-    : 'Everything posted to the class, in one place.';
+    ? 'Post announcements, quiz alerts, and reminders for the whole class or specific sections.'
+    : 'Everything posted to your class, in one place.';
 
   if(annUnsubscribe) annUnsubscribe();
-  annUnsubscribe = db.collection('notifications')
-    .where('targetAll','==',true)
-    .orderBy('createdAt','desc')
-    .limit(100)
-    .onSnapshot(snap=>{
-      annItems = snap.docs.map(d=>({id:d.id,...d.data()}));
-      renderAnnouncementBoard();
-    }, ()=>{ annItems=[]; renderAnnouncementBoard(); });
+
+  // Teachers see ALL announcements; students see only those matching their grade/section or targetAll
+  let query = db.collection('notifications').orderBy('createdAt','desc').limit(100);
+
+  annUnsubscribe = query.onSnapshot(snap=>{
+    const myGrade   = (currentUser?.gradeLevel||'').toString().trim();
+    const mySection = (currentUser?.section||'').toLowerCase().trim();
+
+    annItems = snap.docs.map(d=>({id:d.id,...d.data()})).filter(n=>{
+      if(isTeacher) return true; // teachers see everything
+      if(n.targetAll)    return true;
+      if(n.targetGrade   && n.targetGrade.toString() === myGrade) return true;
+      if(n.targetSection && mySection && mySection.includes(n.targetSection.toLowerCase().trim())) return true;
+      return false;
+    });
+    renderAnnouncementBoard();
+  }, e=>{
+    console.error('Announcements listener error:', e);
+    annItems=[];
+    renderAnnouncementBoard();
+  });
 }
 
 function setAnnFilter(type){
@@ -9461,16 +9679,14 @@ function renderAnnouncementBoard(){
   const list = document.getElementById('annBoardList'); if(!list) return;
   const isTeacher = currentUser && (currentUser.role==='teacher'||currentUser.role==='admin'||currentUser.role==='teacher-admin');
   let items = annFilterType==='all' ? annItems : annItems.filter(n=>(n.type||'announce')===annFilterType);
-  // Students never see expired announcements; teachers still see them
-  // (greyed out, pushed to the bottom) so they can extend or delete them.
   if(!isTeacher) items = items.filter(n=>!isAnnExpired(n));
   items = [...items].sort((a,b)=>{
     const ea = isAnnExpired(a)?1:0, eb = isAnnExpired(b)?1:0;
     if(ea!==eb) return ea-eb;
     const pa = (a.pinned&&!ea)?1:0, pb = (b.pinned&&!eb)?1:0;
     if(pa!==pb) return pb-pa;
-    const ta = a.createdAt?.toMillis?.() || 0;
-    const tb = b.createdAt?.toMillis?.() || 0;
+    const ta = a.createdAt?.toMillis?.() || a._clientTs || 0;
+    const tb = b.createdAt?.toMillis?.() || b._clientTs || 0;
     return tb-ta;
   });
   if(!items.length){
@@ -9484,6 +9700,9 @@ function renderAnnouncementBoard(){
     const ts = n.createdAt?.toDate ? n.createdAt.toDate() : null;
     const rel = ts ? relativeTime(ts) : '';
     const bodyHtml = escapeHtml(n.body||'').replace(/\n/g,'<br>');
+    let audienceTag = '';
+    if(n.targetGrade)   audienceTag = `<span style="font-size:0.62rem;font-weight:700;padding:1px 6px;border-radius:20px;background:var(--gold-bg);color:var(--gold-text);">Grade ${escapeHtml(n.targetGrade)}</span>`;
+    else if(n.targetSection) audienceTag = `<span style="font-size:0.62rem;font-weight:700;padding:1px 6px;border-radius:20px;background:var(--gold-bg);color:var(--gold-text);">§ ${escapeHtml(n.targetSection)}</span>`;
     let dateTag = '';
     if(expired) dateTag = `<span style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--red);">⏳ ${escapeHtml(annExpiryLabel(n.expiresAt))}</span>`;
     else if(n.expiresAt) dateTag = `<span style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted-text);">⏳ ${escapeHtml(annExpiryLabel(n.expiresAt))}</span>`;
@@ -9493,6 +9712,7 @@ function renderAnnouncementBoard(){
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
           <span style="font-weight:700;color:var(--ink);font-size:var(--text-sm);">${escapeHtml(n.title||'Announcement')}</span>
           ${(n.pinned&&!expired)?'<span class="ann-pin-tag">📌 Pinned</span>':''}
+          ${audienceTag}
           ${dateTag}
         </div>
         <div style="font-size:var(--text-sm);color:var(--ink-3);line-height:1.55;">${bodyHtml}</div>
@@ -9508,58 +9728,81 @@ function renderAnnouncementBoard(){
 }
 
 async function saveBoardAnnouncement(){
-  const titleInput = (document.getElementById('annTitle')?.value||'').trim();
-  const body = (document.getElementById('annBody')?.value||'').trim();
-  const type = document.getElementById('annType')?.value||'announce';
-  const pinned = !!document.getElementById('annPin')?.checked;
-  const expiresInVal = document.getElementById('annExpiresIn')?.value||'';
+  const titleInput  = (document.getElementById('annTitle')?.value||'').trim();
+  const body        = (document.getElementById('annBody')?.value||'').trim();
+  const type        = document.getElementById('annType')?.value||'announce';
+  const pinned      = !!document.getElementById('annPin')?.checked;
+  const expiresInVal= document.getElementById('annExpiresIn')?.value||'';
+  const target      = document.getElementById('annTarget')?.value||'all';
+  const targetGrade = (document.getElementById('annTargetGrade')?.value||'').trim();
+  const targetSection=(document.getElementById('annTargetSection')?.value||'').trim();
+
   if(!body){ showToast('Please write a message before posting.','error'); return; }
+  if(target==='section' && !targetSection){ showToast('Please enter a section name.','error'); return; }
+
   const titleMap={announce:'📢 Announcement',quiz:'📝 Quiz Alert',reminder:'⏰ Reminder'};
   const title = titleInput || titleMap[type] || '📢 Announcement';
   const btn = document.getElementById('annSaveBtn');
   btn.disabled = true; btn.textContent = annEditingId ? 'Saving…' : 'Posting…';
+
   const data = { title, body, type, pinned };
-  // 'keep' only appears as an option while editing an item that already has
-  // a future expiry — leave its expiresAt untouched in that case.
+
+  // Audience targeting
+  if(!annEditingId){
+    data.targetAll     = target === 'all';
+    data.targetGrade   = target === 'grade'   ? targetGrade   : '';
+    data.targetSection = target === 'section' ? targetSection : '';
+  }
+
   if(expiresInVal !== 'keep'){
     data.expiresAt = expiresInVal ? new Date(Date.now() + parseFloat(expiresInVal)*3600000).toISOString() : '';
   }
+
   try {
     if(annEditingId){
-      await guardPermission(db.collection('notifications').doc(annEditingId).update(data));
-      showToast('Announcement updated.','success');
+      await db.collection('notifications').doc(annEditingId).update(data);
+      showToast('Announcement updated. ✅','success');
     } else {
-      data.targetAll = true;
-      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      data.createdBy = currentUser?.id;
-      data.createdByName = currentUser?currentUser.name:'';
-      await guardPermission(db.collection('notifications').add(data));
+      data.createdAt    = firebase.firestore.FieldValue.serverTimestamp();
+      data._clientTs    = Date.now(); // fallback sort key
+      data.createdBy    = currentUser?.id||'';
+      data.createdByName= currentUser?.name||'';
+      await db.collection('notifications').add(data);
       showToast('Announcement posted! 📢','success');
     }
     cancelAnnEdit();
-  } catch(e){ showToast('Could not save: '+(e.message||e),'error'); }
-  finally { btn.disabled=false; btn.textContent = annEditingId ? 'Save Changes' : 'Post Announcement'; }
+  } catch(e){
+    console.error('saveBoardAnnouncement error:', e);
+    showToast('Could not save: '+(e.message||e),'error');
+  } finally {
+    btn.disabled=false;
+    btn.textContent = annEditingId ? 'Save Changes' : 'Post Announcement';
+  }
 }
 
 function openAnnEditForm(id){
   const n = annItems.find(x=>x.id===id); if(!n) return;
   annEditingId = id;
   document.getElementById('annTitle').value = n.title||'';
-  document.getElementById('annBody').value = n.body||'';
-  document.getElementById('annType').value = n.type||'announce';
+  document.getElementById('annBody').value  = n.body||'';
+  document.getElementById('annType').value  = n.type||'announce';
   document.getElementById('annPin').checked = !!n.pinned;
+  // Restore targeting
+  const targetSel = document.getElementById('annTarget');
+  if(targetSel){
+    if(n.targetSection){ targetSel.value='section'; document.getElementById('annTargetSection').value=n.targetSection; }
+    else if(n.targetGrade){ targetSel.value='grade'; document.getElementById('annTargetGrade').value=n.targetGrade; }
+    else { targetSel.value='all'; }
+    updateAnnSectionField();
+  }
   const sel = document.getElementById('annExpiresIn');
   if(sel){
     const oldKeep = sel.querySelector('option[value="keep"]'); if(oldKeep) oldKeep.remove();
     if(n.expiresAt && !isAnnExpired(n)){
       const opt = document.createElement('option');
-      opt.value = 'keep';
-      opt.textContent = `Keep current (${annExpiryLabel(n.expiresAt)})`;
-      sel.insertBefore(opt, sel.firstChild);
-      sel.value = 'keep';
-    } else {
-      sel.value = '';
-    }
+      opt.value='keep'; opt.textContent=`Keep current (${annExpiryLabel(n.expiresAt)})`;
+      sel.insertBefore(opt, sel.firstChild); sel.value='keep';
+    } else { sel.value=''; }
   }
   document.getElementById('annComposerTitle').textContent = 'Edit Announcement';
   document.getElementById('annSaveBtn').textContent = 'Save Changes';
@@ -9569,33 +9812,30 @@ function openAnnEditForm(id){
 
 function cancelAnnEdit(){
   annEditingId = null;
-  const form = document.getElementById('annTitle');
-  if(form){
+  if(document.getElementById('annTitle')){
     document.getElementById('annTitle').value='';
     document.getElementById('annBody').value='';
     document.getElementById('annType').value='announce';
     document.getElementById('annPin').checked=false;
+    const targetSel = document.getElementById('annTarget');
+    if(targetSel){ targetSel.value='all'; updateAnnSectionField(); }
     const sel = document.getElementById('annExpiresIn');
-    if(sel){
-      const oldKeep = sel.querySelector('option[value="keep"]'); if(oldKeep) oldKeep.remove();
-      sel.value = '';
-    }
+    if(sel){ const oldKeep=sel.querySelector('option[value="keep"]'); if(oldKeep) oldKeep.remove(); sel.value=''; }
   }
   document.getElementById('annComposerTitle').textContent = 'Post an Announcement';
   document.getElementById('annSaveBtn').textContent = 'Post Announcement';
   document.getElementById('annCancelBtn')?.classList.add('hidden');
 }
 
-
 async function toggleAnnPin(id, current){
-  try { await guardPermission(db.collection('notifications').doc(id).update({ pinned: !current })); }
+  try { await db.collection('notifications').doc(id).update({ pinned: !current }); }
   catch(e){ showToast('Could not update: '+(e.message||e),'error'); }
 }
 
 async function deleteBoardAnnouncement(id){
   if(!confirm('Delete this announcement? This cannot be undone.')) return;
   try {
-    await guardPermission(db.collection('notifications').doc(id).delete());
+    await db.collection('notifications').doc(id).delete();
     showToast('Announcement deleted.','success');
     if(annEditingId===id) cancelAnnEdit();
   } catch(e){ showToast('Could not delete: '+(e.message||e),'error'); }
@@ -9729,8 +9969,6 @@ function getGroqKey(){
   try{ return localStorage.getItem('sabnahis_groq_key')||''; } catch(e){ return ''; }
 }
 
-// Pulls the shared key from Firestore (config/groq) so every student & staff
-// member on this device/browser gets AI features without entering a key.
 async function loadGroqKeyFromFirestore(){
   try{
     const snap = await db.collection('config').doc('groq').get();
@@ -9739,15 +9977,13 @@ async function loadGroqKeyFromFirestore(){
       try{ localStorage.setItem('sabnahis_groq_key', _groqKeyCache); } catch(e){}
     }
   } catch(e){
-    console.warn('Could not load Groq key from Firestore (check Firestore rules for config/groq):', e.message);
+    console.warn('Could not load Groq key from Firestore:', e.message);
   } finally {
     _groqKeyLoaded = true;
     updateAiStatus();
   }
 }
 
-// Saves the key typed into the input box. Only teachers/admins may write —
-// Firestore security rules should also enforce this server-side.
 async function saveGroqKey(){
   const isStaff = currentUser && (currentUser.role==='teacher'||currentUser.role==='admin'||currentUser.role==='teacher-admin');
   if(!isStaff){
@@ -9766,7 +10002,7 @@ async function saveGroqKey(){
     await db.collection('config').doc('groq').set({ apiKey: val });
     _groqKeyCache = val;
     try{ localStorage.setItem('sabnahis_groq_key', val); } catch(e){}
-    if(typeof showToast==='function') showToast('✅ API key saved to Firestore for everyone!', 'success');
+    if(typeof showToast==='function') showToast('✅ Groq API key saved for everyone!', 'success');
   } catch(e){
     console.error('Failed to save Groq key to Firestore:', e);
     if(typeof showToast==='function') showToast('⛔ Could not save key — check Firestore rules for config/groq.', 'error');
@@ -13100,7 +13336,7 @@ async function sendAiPageMessage() {
   if (!apiKey) {
     typingDiv?.remove();
     aiPageTyping = false;
-    appendAiPageMsg('bot', '⚠️ Please enter the Groq API key in the key bar below to activate NeuroBot. Get a free key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--gold-text);font-weight:600;">console.groq.com/keys</a> 🔑');
+    appendAiPageMsg('bot', '⚠️ Please enter your Groq API key below to activate NeuroBot. Get one free at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--gold-text);font-weight:600;">console.groq.com/keys</a> 🔑');
     const keyBar = document.getElementById('aiPageKeyBar');
     if (keyBar) keyBar.style.display = 'flex';
     return;
