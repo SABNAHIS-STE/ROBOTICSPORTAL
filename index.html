@@ -1122,6 +1122,8 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
   .topbar{display:none;}
   .page{padding-bottom:calc(var(--mob-nav-h) + 20px);}
   .stat-grid{grid-template-columns:1fr 1fr;}
+  #sidebarMobCloseBtn{display:flex!important;}
+  .sidebar-collapse-btn{display:none!important;}
 }
 
 /* ══════ SIDEBAR COLLAPSE (desktop) ══════ */
@@ -1971,10 +1973,8 @@ th.chk-col,td.chk-col{width:34px;}
   </div>
 </div>
 
-  <!-- Background Shader Layer -->
-  <div style="position:fixed;inset:0;width:100%;height:100%;z-index:0;">
-    <canvas id="auth-shader-canvas" style="display:block;width:100%;height:100%"></canvas>
-  </div>
+  <!-- Plain Dark Background -->
+  <div style="position:fixed;inset:0;width:100%;height:100%;z-index:0;background:#0b1326;"></div>
 
   <!-- Scanline -->
   <div class="scanline" style="position:fixed;z-index:1;"></div>
@@ -2118,95 +2118,6 @@ th.chk-col,td.chk-col{width:34px;}
 }
 </style>
 
-<script>
-(function(){
-  const canvas = document.getElementById('auth-shader-canvas');
-  if(!canvas) return;
-  function syncSize(){
-    const w = canvas.clientWidth || 1280, h = canvas.clientHeight || 720;
-    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
-  }
-  if(typeof ResizeObserver!=='undefined'){ new ResizeObserver(syncSize).observe(canvas); }
-  syncSize();
-  const gl = canvas.getContext('webgl')||canvas.getContext('experimental-webgl');
-  if(!gl) return;
-  const vs = `attribute vec2 a_position;varying vec2 v_texCoord;void main(){v_texCoord=a_position*0.5+0.5;gl_Position=vec4(a_position,0.0,1.0);}`;
-  const fs = `precision highp float;
-uniform float u_time;uniform vec2 u_resolution;uniform vec2 u_mouse;varying vec2 v_texCoord;
-vec3 permute(vec3 x){return mod(((x*34.0)+1.0)*x,289.0);}
-float snoise(vec2 v){
-  const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);
-  vec2 i=floor(v+dot(v,C.yy));vec2 x0=v-i+dot(i,C.xx);
-  vec2 i1;i1=(x0.x>x0.y)?vec2(1.0,0.0):vec2(0.0,1.0);
-  vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;i=mod(i,289.0);
-  vec3 p=permute(permute(i.y+vec3(0.0,i1.y,1.0))+i.x+vec3(0.0,i1.x,1.0));
-  vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);
-  m=m*m;m=m*m;
-  vec3 x=2.0*fract(p*C.www)-1.0;vec3 h=abs(x)-0.5;vec3 a0=x-floor(x+0.5);
-  vec3 g=a0*vec3(x0.x,x12.xz)+h*vec3(x0.y,x12.yw);
-  vec3 l=1.79284291400159-0.85373472095314*(g*g+h*h);
-  vec3 r=g*vec3(l.x,l.y,l.z);return 130.0*dot(m,r);
-}
-void main(){
-  vec2 uv=v_texCoord;vec2 mouse=u_mouse/u_resolution;
-  float strength=0.0;
-  strength+=snoise(uv*3.0+u_time*0.2)*0.5;
-  strength+=snoise(uv*5.0-u_time*0.3)*0.25;
-  float dist=distance(uv,mouse);
-  float mouseInfluence=smoothstep(0.4,0.0,dist);
-  strength+=mouseInfluence*0.4*sin(u_time*2.0);
-  float blobs=smoothstep(0.2,0.25,strength);
-  vec3 colorA=vec3(0.051,0.059,0.078);
-  vec3 colorB=vec3(0.0,0.898,1.0);
-  vec3 colorC=vec3(0.02,0.06,0.13);
-  vec3 finalColor=mix(colorA,colorC,uv.y);
-  finalColor=mix(finalColor,colorB*0.6,blobs*(0.5+0.5*sin(u_time*0.5)));
-  finalColor+=colorB*mouseInfluence*0.15;
-  gl_FragColor=vec4(finalColor,1.0);
-}`;
-  function cs(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;}
-  const prog=gl.createProgram();
-  gl.attachShader(prog,cs(gl.VERTEX_SHADER,vs));
-  gl.attachShader(prog,cs(gl.FRAGMENT_SHADER,fs));
-  gl.linkProgram(prog);gl.useProgram(prog);
-  const buf=gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-  const pos=gl.getAttribLocation(prog,'a_position');
-  gl.enableVertexAttribArray(pos);
-  gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
-  const uTime=gl.getUniformLocation(prog,'u_time');
-  const uRes=gl.getUniformLocation(prog,'u_resolution');
-  const uMouse=gl.getUniformLocation(prog,'u_mouse');
-  let mouse={x:canvas.width/2,y:canvas.height/2};
-  window.addEventListener('mousemove',(event)=>{
-    const rect=canvas.getBoundingClientRect();
-    if(rect.width&&rect.height){
-      const nx=(event.clientX-rect.left)/rect.width;
-      const ny=1.0-(event.clientY-rect.top)/rect.height;
-      mouse.x=nx*canvas.width;mouse.y=ny*canvas.height;
-    }
-  });
-  let rafId;
-  let authShaderRunning=true;
-  function render(t){
-    if(!authShaderRunning) return;
-    if(typeof ResizeObserver==='undefined') syncSize();
-    gl.viewport(0,0,canvas.width,canvas.height);
-    if(uTime) gl.uniform1f(uTime,t*0.001);
-    if(uRes) gl.uniform2f(uRes,canvas.width,canvas.height);
-    if(uMouse) gl.uniform2f(uMouse,mouse.x,mouse.y);
-    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-    rafId=requestAnimationFrame(render);
-  }
-  window.__authShaderStop=function(){authShaderRunning=false;if(rafId)cancelAnimationFrame(rafId);};
-  window.__authShaderStart=function(){
-    syncSize();
-    if(!authShaderRunning){authShaderRunning=true;render(performance.now());}
-  };
-  render(0);
-})();
-</script>
 
 <div class="app-shell hidden" id="app">
 
@@ -2221,6 +2132,9 @@ void main(){
         <div class="sidebar-logo-name">SABNAHIS</div>
         <div class="sidebar-logo-sub">Robotics Portal</div>
       </div>
+      <button onclick="closeMobSidebar()" aria-label="Close menu" id="sidebarMobCloseBtn" style="display:none;background:none;border:none;cursor:pointer;color:var(--sidebar-text);padding:6px;border-radius:6px;margin-left:auto;min-width:36px;min-height:36px;align-items:center;justify-content:center;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -2479,7 +2393,7 @@ void main(){
 
   <!-- ═══ MOBILE HEADER ═══ -->
   <header class="mob-header">
-    <button class="mob-menu-btn" onclick="openMobSidebar()">
+    <button class="mob-menu-btn" onclick="document.getElementById('sidebar').classList.contains('open')?closeMobSidebar():openMobSidebar()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
     <span class="mob-header-title" id="mobTitle">My Dashboard</span>
