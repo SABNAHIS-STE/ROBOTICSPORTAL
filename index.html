@@ -2309,6 +2309,11 @@ th.chk-col,td.chk-col{width:34px;}
               <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>
               <span class="nav-item-label">Analytics</span>
             </button>
+            <button class="nav-item" data-page="integrity-flags" onclick="goTo('integrity-flags')">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+              <span class="nav-item-label">Integrity Flags</span>
+              <span class="nav-badge hidden" id="integrityFlagsBadge" style="background:var(--red);color:#fff;">0</span>
+            </button>
             <button class="nav-item" data-page="chip-shop" onclick="goTo('chip-shop')">
               <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="8.5"/><line x1="12" y1="15.5" x2="12" y2="17"/><path d="M9.5 10A2.5 2.5 0 0112 8.5h.5a2 2 0 010 4h-1a2 2 0 000 4H12a2.5 2.5 0 002.5-1.5"/></svg></span>
               <span class="nav-item-label">Chip Shop</span>
@@ -3370,6 +3375,13 @@ th.chk-col,td.chk-col{width:34px;}
             </select>
             <span style="font-size:0.7rem;color:var(--muted-text);margin-top:3px;">Quiz disappears from students automatically once this time is up. Leave on "No expiration" to keep it available indefinitely.</span>
           </div>
+          <div class="form-field" style="flex-direction:row;align-items:flex-start;gap:10px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;">
+            <input type="checkbox" id="actAllowRetake" style="margin-top:3px;width:16px;height:16px;accent-color:var(--robot);flex-shrink:0;cursor:pointer;"/>
+            <div>
+              <label for="actAllowRetake" style="font-weight:600;cursor:pointer;display:block;margin-bottom:2px;">Allow Retake</label>
+              <span style="font-size:0.7rem;color:var(--muted-text);">Students who already submitted can retake this quiz. Their latest score replaces the previous one. You can also grant a retake to individual students from the My Students page.</span>
+            </div>
+          </div>
           <div class="hidden" id="actScheduleFields" style="display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;">
             <div style="font-size:0.75rem;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:0.5px;">📅 Availability Window</div>
             <div class="form-grid-2">
@@ -3399,6 +3411,32 @@ th.chk-col,td.chk-col{width:34px;}
           <button type="submit" class="btn btn-primary" id="activitySaveBtn">Save Quiz</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL: GRANT RETAKE ═══ -->
+  <div class="modal-overlay hidden" id="grantRetakeModal">
+    <div class="modal-panel" style="max-width:480px;">
+      <div class="modal-header">
+        <h3>↺ Grant Retake</h3>
+        <button class="modal-close" onclick="closeGrantRetakeModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" style="padding-bottom:8px;">
+        <p style="margin-bottom:14px;font-size:var(--text-sm);color:var(--ink);">
+          Select a quiz to clear <strong id="grantRetakeStudentName">this student</strong>'s submission. They'll be able to retake it immediately. Their previous score will be removed.
+        </p>
+        <div class="form-field">
+          <label for="grantRetakeQuizSel">Quiz to reset</label>
+          <select id="grantRetakeQuizSel" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--white);color:var(--ink);font-family:var(--font-body);font-size:var(--text-sm);">
+            <option value="">— Choose a quiz —</option>
+          </select>
+        </div>
+        <div id="grantRetakeStatus" style="display:none;margin-top:6px;font-size:0.75rem;padding:8px 12px;border-radius:var(--radius);"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeGrantRetakeModal()">Cancel</button>
+        <button class="btn btn-primary" id="grantRetakeConfirmBtn" onclick="confirmGrantRetake()" style="background:var(--purple);border-color:var(--purple);">↺ Grant Retake</button>
+      </div>
     </div>
   </div>
 
@@ -3654,6 +3692,50 @@ void loop() {
   <div id="quizSimOverlay" onclick="closeQuizSimPanel()" style="
     display:none;position:fixed;inset:0;z-index:599;
     background:rgba(0,0,0,0.25);backdrop-filter:blur(1px);"></div>
+
+  <!-- ═══════════════════════════════════
+       PAGE: INTEGRITY FLAGS (Teacher)
+  ══════════════════════════════════════ -->
+  <div class="page page-transition hidden" id="page-integrity-flags">
+    <div class="page-header">
+      <h1>🛡️ Integrity Flags</h1>
+      <p>Quiz violation clips from AI proctoring. Each clip is 8 seconds and expires automatically after 7 days.</p>
+    </div>
+    <div class="card" style="margin-bottom:18px;padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <select id="ifQuizFilter" onchange="loadIntegrityFlags()" style="flex:1;min-width:160px;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--white);color:var(--ink);font-family:var(--font-body);font-size:var(--text-sm);"><option value="">All Quizzes</option></select>
+        <select id="ifTypeFilter" onchange="loadIntegrityFlags()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--white);color:var(--ink);font-family:var(--font-body);font-size:var(--text-sm);">
+          <option value="">All Violation Types</option>
+          <option value="no_face">No Face</option>
+          <option value="multi_face">Multiple Faces</option>
+          <option value="phone_detected">Phone Detected</option>
+          <option value="look_down">Looking Down</option>
+          <option value="split_screen">Split Screen</option>
+          <option value="screen_share_stopped">Screen Share Stopped</option>
+          <option value="auto_fill">Auto-Fill</option>
+          <option value="id_mismatch">ID Mismatch</option>
+        </select>
+        <select id="ifStudentFilter" onchange="loadIntegrityFlags()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--white);color:var(--ink);font-family:var(--font-body);font-size:var(--text-sm);"><option value="">All Students</option></select>
+        <button onclick="loadIntegrityFlags()" style="padding:7px 14px;border-radius:var(--radius);border:none;background:var(--robot);color:#fff;font-weight:600;font-family:var(--font-body);font-size:var(--text-sm);cursor:pointer;">Refresh</button>
+      </div>
+    </div>
+    <div class="stat-grid" style="margin-bottom:18px;">
+      <div class="stat-card"><div class="stat-val" id="ifStatTotal">—</div><div class="stat-label">Total Flags (7 days)</div></div>
+      <div class="stat-card"><div class="stat-val" id="ifStatStudents">—</div><div class="stat-label">Students Flagged</div></div>
+      <div class="stat-card"><div class="stat-val" id="ifStatTopType">—</div><div class="stat-label">Most Common Flag</div></div>
+      <div class="stat-card"><div class="stat-val" id="ifStatExpiring">—</div><div class="stat-label">Expiring in 24 h</div></div>
+    </div>
+    <div id="ifClipsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;">
+      <div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--muted-text);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🛡️</div>
+        <div style="font-weight:600;margin-bottom:6px;">No flags yet</div>
+        <div style="font-size:var(--text-sm);">Violation clips appear here when proctored quizzes are taken.</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;padding:12px 16px;background:var(--gold-bg);border:1px solid var(--gold);border-radius:var(--radius);font-size:var(--text-sm);color:var(--gold-text);display:flex;align-items:center;gap:8px;">
+      <span>⏳</span><span>Clips auto-delete 7 days after recording. Download important clips before they expire.</span>
+    </div>
+  </div>
 
   <!-- ═══════════════════════════
        PAGE: TEACHER ANALYTICS
@@ -5709,7 +5791,7 @@ function enterApp(){
   if(role==='teacher'){
     document.getElementById('teacherWelcome').textContent = `Welcome back, ${currentUser.name.split(' ')[0]} 👋`;
     goTo('teacher-dashboard');
-    setTimeout(()=>{ loadTeacherData(); loadManageContent(); }, 0);
+    setTimeout(()=>{ loadTeacherData(); loadManageContent(); _refreshIntegrityBadge(); }, 0);
   } else {
     const welcomeNameEl = document.getElementById('welcomeName');
     if(welcomeNameEl) welcomeNameEl.textContent = currentUser.name.split(' ')[0];
@@ -6244,13 +6326,16 @@ function renderManageActivities(){
       <td>${a.questions?a.questions.length:0}</td>
       <td>${a.submissionCount||0}</td>
       <td style="font-size:0.8rem;">${escapeHtml(a.postedBy||'—')}</td>
-      <td><div style="display:flex;gap:6px;">
+      <td><div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button class="btn-xs" onclick="openSubmissionsModal('${a.id}')">👁 View</button>
         <button class="btn-xs" onclick="openActivityModal('${a.id}')">Edit</button>
         <button class="btn-xs" onclick="duplicateActivity('${a.id}')">⧉ Duplicate</button>
         ${a.rubricId?`<button class="btn-xs" onclick="openRubricViewModal('${a.rubricId}')" title="View attached rubric">📐 Rubric</button>`:''}
+        <button class="btn-xs" style="background:var(--purple-light);color:var(--purple);border:1px solid var(--purple);" onclick="resetAllResultsForQuiz('${a.id}','${escapeHtml(a.title||'Quiz')}')">↺ Reset All</button>
         <button class="btn-xs red" onclick="deleteActivity('${a.id}')">Delete</button>
-      </div></td>
+      </div>
+      ${a.allowRetake?`<div style="margin-top:5px;"><span style="font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--purple-light);color:var(--purple);">↺ Retakes On</span></div>`:''}
+      </td>
     </tr>
   `).join('');
 }
@@ -6314,15 +6399,19 @@ function renderAvailableActivities(){
         ${windowLabel}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-        ${taken
+        ${taken && !a.allowRetake
           ? `<span class="quiz-card-badge" style="background:var(--green-light);color:var(--green);border-radius:99px;padding:3px 10px;font-size:0.7rem;font-weight:700;">✓ Completed</span>
              ${myResult?`<span style="font-size:0.72rem;color:var(--muted-text);">Score: <strong>${myResult.correct!=null&&myResult.total!=null?`${myResult.correct}/${myResult.total}`:`${myResult.score}%`}</strong></span>`:''}`
-          : isUpcoming
-            ? `<span class="quiz-card-badge" style="background:var(--blue-light);color:var(--blue);border-radius:99px;padding:3px 10px;font-size:0.7rem;font-weight:700;">Upcoming</span>`
-            : isOpen
-              ? `<span class="quiz-card-badge live" style="border-radius:99px;padding:3px 10px;font-size:0.7rem;font-weight:700;">🔴 Live</span>
-                 <button class="btn btn-primary" style="padding:6px 14px;font-size:0.78rem;" onclick="joinQuiz('${a.id}')">Start</button>`
-              : `<span class="quiz-card-badge" style="background:var(--surface);color:var(--muted-text);border-radius:99px;padding:3px 10px;font-size:0.7rem;">Closed</span>`
+          : taken && a.allowRetake && isOpen
+            ? `<span class="quiz-card-badge" style="background:var(--green-light);color:var(--green);border-radius:99px;padding:3px 10px;font-size:0.7rem;font-weight:700;">✓ ${myResult?myResult.score+'%':''}</span>
+               <span style="font-size:0.65rem;color:var(--purple);font-weight:700;">↺ Retake allowed</span>
+               <button class="btn btn-primary" style="padding:6px 14px;font-size:0.78rem;background:var(--purple);border-color:var(--purple);" onclick="joinQuiz('${a.id}')">Retake</button>`
+            : isUpcoming
+              ? `<span class="quiz-card-badge" style="background:var(--blue-light);color:var(--blue);border-radius:99px;padding:3px 10px;font-size:0.7rem;font-weight:700;">Upcoming</span>`
+              : isOpen
+                ? `<span class="quiz-card-badge live" style="border-radius:99px;padding:3px 10px;font-size:0.7rem;font-weight:700;">🔴 Live</span>
+                   <button class="btn btn-primary" style="padding:6px 14px;font-size:0.78rem;" onclick="joinQuiz('${a.id}')">Start</button>`
+                : `<span class="quiz-card-badge" style="background:var(--surface);color:var(--muted-text);border-radius:99px;padding:3px 10px;font-size:0.7rem;">Closed</span>`
         }
       </div>
     </div>`;
@@ -6567,7 +6656,10 @@ async function submitQuizForced(forcedScore){
       }
     } catch(gbErr){ console.error('Gradebook sync error:', gbErr); }
     const prevResults = currentUser.quizResults || [];
-    const newResults = [...prevResults, result];
+    const isRetakeForced = prevResults.some(r=>r.activityId===quizId);
+    const newResults = isRetakeForced
+      ? prevResults.map(r => r.activityId===quizId ? result : r)
+      : [...prevResults, result];
     const avgScore = Math.round(newResults.reduce((s,r)=>s+r.score,0)/newResults.length);
     await db.collection('users').doc(currentUser.id).update({
       quizResults: newResults,
@@ -6775,9 +6867,9 @@ function joinQuiz(activityId){
     return;
   }
 
-  // ── One-attempt guard (skipped when taking this quiz as a live group activity) ──
+  // ── One-attempt guard (skipped for live group quiz or when teacher enabled retakes) ──
   const alreadyTaken = !activeGroupQuizContext && (currentUser?.quizResults||[]).some(r=>r.activityId===activityId);
-  if(alreadyTaken){
+  if(alreadyTaken && !act.allowRetake){
     showToast('You have already submitted this quiz. Each quiz can only be taken once.','error');
     return;
   }
@@ -6938,8 +7030,12 @@ async function submitQuiz(){
       }
     } catch(gbErr){ console.error('Gradebook sync error:', gbErr); }
     // Update student's quizResults + overallScore
+    // On retake: replace previous result for this quiz; on first attempt: append
     const prevResults=currentUser.quizResults||[];
-    const newResults=[...prevResults, result];
+    const isRetake = prevResults.some(r=>r.activityId===activeQuizData.id);
+    const newResults = isRetake
+      ? prevResults.map(r => r.activityId===activeQuizData.id ? result : r)
+      : [...prevResults, result];
     const avgScore=Math.round(newResults.reduce((s,r)=>s+r.score,0)/newResults.length);
     const quizzesDone=newResults.length;
     await db.collection('users').doc(currentUser.id).update({
@@ -7079,6 +7175,8 @@ function openActivityModal(id){
       } else { expSel.value=''; }
     }
     document.getElementById('actTargetSection').value=a.targetSection||'';
+    const retakeChk=document.getElementById('actAllowRetake');
+    if(retakeChk) retakeChk.checked=!!(a.allowRetake);
     (a.questions||[]).forEach(q=>addQuestionBlock(q));
   } else {
     document.getElementById('activityForm').reset();
@@ -7162,6 +7260,7 @@ async function saveActivity(e){
     openAt:document.getElementById('actOpenAt').value||'',
     closeAt:document.getElementById('actCloseAt').value||'',
     targetSection:document.getElementById('actTargetSection').value.trim(),
+    allowRetake:document.getElementById('actAllowRetake')?.checked || false,
     questions,
     maxPoints,
     postedBy:currentUser?currentUser.name:'',
@@ -7196,6 +7295,49 @@ async function deleteActivity(id){
     showToast('Quiz deleted.','success');
     await loadActivitiesFromDB();
   } catch(e){ showToast('Could not delete: '+(e.message||e),'error'); }
+}
+
+// ── Reset all student submissions for a quiz (global retake for the whole class) ──
+async function resetAllResultsForQuiz(quizId, quizTitle){
+  if(!confirm(`Reset ALL student submissions for "${quizTitle}"?\n\nEvery student's result will be cleared and they'll be able to retake this quiz. This cannot be undone.`)) return;
+  showToast('Clearing submissions…','info');
+  try {
+    // Load all users and strip this quiz from their quizResults
+    const snap = await guardPermission(db.collection('users').where('role','==','student').get(), null);
+    if(!snap){ showToast('Could not load students.','error'); return; }
+    const batch = db.batch();
+    let cleared = 0;
+    snap.docs.forEach(doc=>{
+      const data = doc.data();
+      const results = data.quizResults||[];
+      if(results.some(r=>r.activityId===quizId)){
+        const newResults = results.filter(r=>r.activityId!==quizId);
+        const avgScore = newResults.length>0
+          ? Math.round(newResults.reduce((s,r)=>s+r.score,0)/newResults.length)
+          : 0;
+        batch.update(doc.ref, {
+          quizResults: newResults,
+          quizzesDone: newResults.length,
+          overallScore: avgScore
+        });
+        cleared++;
+      }
+    });
+    if(cleared > 0){
+      await batch.commit();
+      // Also clear gradebook entries for this quiz
+      try {
+        const gbSnap = await db.collection('quiz_scores').where('activityId','==',quizId).get();
+        const gbBatch = db.batch();
+        gbSnap.docs.forEach(d=>gbBatch.delete(d.ref));
+        if(!gbSnap.empty) await gbBatch.commit();
+      } catch(_){ /* non-critical */ }
+      showToast(`↺ Reset ${cleared} submission${cleared!==1?'s':''} for "${quizTitle}". All students can now retake it.`,'success');
+    } else {
+      showToast('No submissions found for this quiz.','info');
+    }
+    await loadTeacherData();
+  } catch(e){ showToast('Could not reset submissions: '+(e.message||e),'error'); }
 }
 
 async function duplicateActivity(id){
@@ -8492,7 +8634,7 @@ function expandNavGroupForPage(pageId) {
     'teacher-students':'navGroupTeacherClassroom','attendance':'navGroupTeacherClassroom',
     'schedule':'navGroupTeacherClassroom','announcements':'navGroupTeacherClassroom',
     'manage-content':'navGroupTeacherMgmt',
-    'teacher-analytics':'navGroupTeacherMgmt','achievements':'navGroupTeacherMgmt',
+    'teacher-analytics':'navGroupTeacherMgmt','integrity-flags':'navGroupTeacherMgmt','achievements':'navGroupTeacherMgmt',
     'code-lessons':'navGroupTeacherResources',
     'simulator':'navGroupTeacherResources',
     'flashcards':'navGroupTeacherResources','resistor-calc':'navGroupTeacherResources',
@@ -8507,7 +8649,7 @@ function expandNavGroupForPage(pageId) {
 
 function goTo(pageId){
   // Call original navigation
-  const pages2 = ['dashboard','activity','modules','leaderboard','teacher-dashboard','teacher-students','manage-content','teacher-analytics','code-lessons','simulator','schedule','announcements','attendance','gradebook','achievements','squad-mode','chip-shop','resistor-calc','circuit-glossary','flashcards','ai-chat'];
+  const pages2 = ['dashboard','activity','modules','leaderboard','teacher-dashboard','teacher-students','manage-content','teacher-analytics','integrity-flags','code-lessons','simulator','schedule','announcements','attendance','gradebook','achievements','squad-mode','chip-shop','resistor-calc','circuit-glossary','flashcards','ai-chat'];
   pages2.forEach(p=>{
     const el=document.getElementById('page-'+p);
     if(el) el.classList.add('hidden');
@@ -8529,7 +8671,7 @@ function goTo(pageId){
     dashboard:'My Dashboard', activity:'Activity Area', modules:'Modules',
     leaderboard:'Leaderboard', 'teacher-dashboard':'My Dashboard',
     'teacher-students':'My Students',
-    'manage-content':'Manage Content', 'teacher-analytics':'Analytics',
+    'manage-content':'Manage Content', 'teacher-analytics':'Analytics', 'integrity-flags':'Integrity Flags',
     'code-lessons':'Code Lessons', simulator:'Arduino Lab',
     schedule:'Class Schedule', announcements:'Announcements', attendance:'Attendance',
     gradebook:'Gradebook',
@@ -8551,6 +8693,7 @@ function goTo(pageId){
   if(pageId==='manage-content') { loadManageContent(); loadSimTasks(); }
   if(pageId==='teacher-students'){ loadTeacherRoster(); loadTeacherData(); }
   if(pageId==='teacher-analytics') loadTeacherAnalytics();
+  if(pageId==='integrity-flags') loadIntegrityFlags();
   if(pageId==='code-lessons') initCodeLessons();
   if(pageId==='simulator') initSimulatorFrame();
   if(pageId==='schedule') initCalendar();
@@ -8660,6 +8803,7 @@ function renderTeacherStudents(){
       <td><div style="display:flex;gap:6px;flex-wrap:wrap;">
         ${u.status!=='approved'?`<button class="btn-xs grn" onclick="approveStudentFromRoster('${u.id}')">✓ Approve</button>`:''}
         ${u.status!=='rejected'?`<button class="btn-xs red" onclick="rejectStudentFromRoster('${u.id}')">✕ Reject</button>`:''}
+        ${u.status==='approved'?`<button class="btn-xs" style="background:var(--purple-light);color:var(--purple);border:1px solid var(--purple);" onclick="openGrantRetakeModal('${u.id}','${escapeHtml(u.name||u.email||'Student')}')">↺ Retake</button>`:''}
       </div></td>
     </tr>
   `).join('');
@@ -8680,6 +8824,97 @@ async function rejectStudentFromRoster(id){
     await loadTeacherRoster();
     await loadTeacherData(); // refresh dashboard pending list too
   } catch(e){ showToast('Could not reject student: '+(e.message||e),'error'); }
+}
+
+// ── Grant Retake ──────────────────────────────────────────────────────────────
+let _grantRetakeStudentId = null;
+
+function openGrantRetakeModal(studentId, studentName){
+  _grantRetakeStudentId = studentId;
+  const nameEl = document.getElementById('grantRetakeStudentName');
+  if(nameEl) nameEl.textContent = studentName;
+
+  // Populate quiz selector with quizzes that have this student's result
+  const student = teacherRosterCache.find(u=>u.id===studentId) ||
+                  allUsersCache.find(u=>u.id===studentId) || {};
+  const takenIds = new Set((student.quizResults||[]).map(r=>r.activityId));
+  const sel = document.getElementById('grantRetakeQuizSel');
+  if(sel){
+    // Show ALL quizzes — teacher may want to grant retake even if student hasn't taken it yet
+    const allQuizzes = activitiesCache.length > 0 ? activitiesCache : [];
+    sel.innerHTML = '<option value="">— Choose a quiz —</option>' +
+      allQuizzes.map(q=>`<option value="${q.id}" ${takenIds.has(q.id)?'':'style="color:var(--muted-text);"'}>
+        ${escapeHtml(q.title||'Untitled')}${takenIds.has(q.id)?' ✓ (submitted)':' (not taken)'}
+      </option>`).join('');
+  }
+
+  const statusEl = document.getElementById('grantRetakeStatus');
+  if(statusEl){ statusEl.style.display='none'; statusEl.textContent=''; }
+  const btn = document.getElementById('grantRetakeConfirmBtn');
+  if(btn){ btn.disabled=false; btn.textContent='↺ Grant Retake'; }
+
+  document.getElementById('grantRetakeModal').classList.remove('hidden');
+}
+
+function closeGrantRetakeModal(){
+  document.getElementById('grantRetakeModal').classList.add('hidden');
+  _grantRetakeStudentId = null;
+}
+
+async function confirmGrantRetake(){
+  if(!_grantRetakeStudentId) return;
+  const quizId = document.getElementById('grantRetakeQuizSel')?.value;
+  if(!quizId){ showToast('Please select a quiz.','error'); return; }
+
+  const btn = document.getElementById('grantRetakeConfirmBtn');
+  const statusEl = document.getElementById('grantRetakeStatus');
+  if(btn){ btn.disabled=true; btn.textContent='Clearing…'; }
+
+  try {
+    // Load the student's current data fresh to avoid stale cache
+    const snap = await db.collection('users').doc(_grantRetakeStudentId).get();
+    if(!snap.exists) throw new Error('Student not found');
+    const data = snap.data();
+    const prevResults = data.quizResults || [];
+    const quizTitle = (activitiesCache.find(a=>a.id===quizId)||{}).title || quizId;
+
+    const newResults = prevResults.filter(r=>r.activityId!==quizId);
+    const avgScore = newResults.length > 0
+      ? Math.round(newResults.reduce((s,r)=>s+r.score,0)/newResults.length)
+      : 0;
+
+    await guardPermission(db.collection('users').doc(_grantRetakeStudentId).update({
+      quizResults: newResults,
+      quizzesDone: newResults.length,
+      overallScore: avgScore
+    }));
+
+    // Also clear gradebook entry for this student+quiz so it doesn't show stale score
+    try {
+      await db.collection('quiz_scores').doc(`${_grantRetakeStudentId}_${quizId}`).delete();
+    } catch(_){ /* non-critical */ }
+
+    if(statusEl){
+      statusEl.style.display='block';
+      statusEl.style.background='var(--green-light)';
+      statusEl.style.color='var(--green)';
+      statusEl.textContent=`✓ Retake granted for "${quizTitle}". Student can now retake this quiz.`;
+    }
+    showToast(`↺ Retake granted for ${(snap.data().name||'student')} — ${quizTitle}`,'success');
+
+    // Refresh cached roster
+    await loadTeacherRoster();
+  } catch(e){
+    if(statusEl){
+      statusEl.style.display='block';
+      statusEl.style.background='var(--red-light)';
+      statusEl.style.color='var(--red)';
+      statusEl.textContent='⛔ Error: '+(e.message||e);
+    }
+    showToast('Could not grant retake: '+(e.message||e),'error');
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='↺ Grant Retake'; }
+  }
 }
 </script>
 
@@ -13415,9 +13650,9 @@ let _apwWarnShown      = false;   // tracks if no-face warning was shown this st
 // Both equate to the same ~2.5 seconds of absence. Fair for all devices.
 // ════════════════════════════════════════════════════════════════════
 const APW_NO_FACE_WARN_MS    = 500;    // 0.5s grace before warning (avoids 1-frame flicker)
-const APW_NO_FACE_VIOL_MS    = 2500;   // 2.5s sustained absence → violation
-const APW_MULTI_VIOL_MS      = 1200;   // 1.2s multiple faces → violation
-const APW_LOOKAWAY_VIOL_MS   = 2000;   // 2.0s sustained look-away → violation
+const APW_NO_FACE_VIOL_MS    = 5000;   // 5s sustained absence → violation (was 2.5s)
+const APW_MULTI_VIOL_MS      = 3000;   // 3s multiple faces → violation (was 1.2s)
+const APW_LOOKAWAY_VIOL_MS   = 5000;   // 5s sustained look-away → violation (was 2s)
 const APW_MAX_VIOLATIONS     = 5;      // force-submit threshold
 
 // Timestamps replacing frame counters — time-based = device-tier-independent
@@ -14098,14 +14333,14 @@ let _bopConsecFrames      = 0;      // consecutive frames where BOP heuristic fi
 
 // Evidence thresholds — tuned for reliable but not hair-trigger flagging
 // At 150ms/frame (6.7fps): VIOL=60 @ gain=12 → ~4-5 consecutive frames (≈0.75s solid detection)
-const PHP_EVIDENCE_WARN   = 12;     // warn after ~1 frame of detection (give 1 frame grace)
-const PHP_EVIDENCE_VIOL   = 60;     // violation after ~5 consecutive frames (≈0.75s) — was 35 (too fast)
-const PHP_COVER_VIOL      = 60;
-const PHP_DECAY           = 10;     // slightly faster decay so intermittent detections don't accumulate
-const PHP_GAIN_BASE       = 12;     // base evidence gain per detected frame
-const PHP_GAIN_NEAR_FACE  = 20;     // boosted gain if phone overlaps face area (was 25, slightly reduced)
-const PHP_SCORE_MIN       = 0.45;   // slightly stricter confidence threshold (was 0.40)
-const PHP_TOAST_COOLDOWN  = 8000;   // cooldown between toast alerts
+const PHP_EVIDENCE_WARN   = 25;     // RELAXED: warn after ~2+ frames     // warn after ~1 frame of detection (give 1 frame grace)
+const PHP_EVIDENCE_VIOL   = 100;    // RELAXED: ~1.5s solid detection (was 60)     // violation after ~5 consecutive frames (≈0.75s) — was 35 (too fast)
+const PHP_COVER_VIOL      = 100;
+const PHP_DECAY           = 15;     // faster decay kills stale partial detections     // slightly faster decay so intermittent detections don't accumulate
+const PHP_GAIN_BASE       = 10;     // slightly lower gain     // base evidence gain per detected frame
+const PHP_GAIN_NEAR_FACE  = 12;     // REDUCED near-face boost (was 20) — chair/clothing overlap kills too many FPs
+const PHP_SCORE_MIN       = 0.60;   // stricter COCO-SSD confidence (was 0.45)   // slightly stricter confidence threshold (was 0.40)
+const PHP_TOAST_COOLDOWN  = 12000;  // longer cooldown between alerts   // cooldown between toast alerts
 
 const PHP_PHONE_CLASSES   = new Set(['cell phone']);
 // Removed 'book' and 'remote' — too many false positives in classroom setting
@@ -14563,8 +14798,9 @@ async function _phpDetect(){
     } else {
       _bopConsecFrames = 0;
     }
-    // Only pass BOP results downstream if we've seen 2+ consecutive positive frames
-    if(_bopConsecFrames >= 2) bopResults = _bopRaw;
+    // Only pass BOP results downstream if we've seen 4+ consecutive positive frames
+    // (was 2 — raised to reduce false positives from clothing/books with similar heuristic signature)
+    if(_bopConsecFrames >= 4) bopResults = _bopRaw;
   } catch(e){ _bopConsecFrames = 0; }
 
   // ── Merge all three passes ──
@@ -14587,7 +14823,8 @@ async function _phpDetect(){
     _phpConsecCover = 0;
     const nearFace = detections.filter(d => PHP_PHONE_CLASSES.has(d.class)).some(_phpNearFace);
     const isBack   = detections.filter(d => PHP_PHONE_CLASSES.has(d.class)).some(d => d._source === 'bop');
-    const gain = nearFace ? PHP_GAIN_NEAR_FACE : PHP_GAIN_BASE;
+    // BOP heuristic gets half the gain — it's less reliable than COCO-SSD detections
+    const gain = nearFace ? PHP_GAIN_NEAR_FACE : (isBack ? Math.floor(PHP_GAIN_BASE * 0.5) : PHP_GAIN_BASE);
     _phpPhoneEvidence = Math.min(100, _phpPhoneEvidence + gain);
     _phpCoverEvidence = Math.max(0, _phpCoverEvidence - PHP_DECAY);
 
@@ -14743,7 +14980,7 @@ function _apwUpdateSmoothedConf(predictions){
 //    Positive pitch = chin down (looking at desk) — classic answer-copying posture.
 // ─────────────────────────────────────────────────────────────────────────────
 let _apwLookDownStart = 0;
-const APW_LOOKDOWN_VIOL_MS = 3000; // 3s looking down = violation
+const APW_LOOKDOWN_VIOL_MS = 5000; // 5s looking down = violation (was 3s)
 
 function _apwIsLookingDown(pred){
   if(!pred.landmarks || pred.landmarks.length < 4) return false;
@@ -15058,22 +15295,13 @@ _apwDetect = async function(){
     _apwLookDownStart = 0;
   }
 
-  // ── Mouth: talking ──
+  // ── Mouth: talking — DISABLED (removed to reduce false positives) ──
+  // Mouth landmark tracking retained for future use, but no violations fired
   const mouthRatio = _apwMouthOpenRatio(pred);
   _apwMouthHistory.push(mouthRatio);
   if(_apwMouthHistory.length > APW_MOUTH_WINDOW * 2) _apwMouthHistory.shift();
-
-  if(_apwDetectTalking()){
-    if(_apwMouthTalkStart === 0) _apwMouthTalkStart = now;
-    _apwSetStatus('warn', '🗣️ Talking?');
-    if(now - _apwMouthTalkStart >= APW_MOUTH_TALK_MS){
-      _apwMouthTalkStart = 0;
-      _apwMouthHistory = []; // reset after violation
-      _apwLogViolation('talking', `Talking detected ${(APW_MOUTH_TALK_MS/1000).toFixed(0)}s`);
-    }
-  } else {
-    _apwMouthTalkStart = 0;
-  }
+  // Talking detection removed: mouth movement is unreliable — normal breathing,
+  // yawning, lip-biting, and low-resolution cameras cause too many false positives.
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -15139,7 +15367,7 @@ getProctorSessionReport = function(){
 
 // ── 1. EYE TRACKING ──────────────────────────────────────────────────────────
 let _gazeZoneHistory=[],_gazeOffStart=0,_gazeHeatmap={},_gazeLastZone='center',_gazeLastTs=0;
-const APW_GAZE_OFF_WARN_MS=2000,APW_GAZE_OFF_VIOL_MS=4000;
+const APW_GAZE_OFF_WARN_MS=4000,APW_GAZE_OFF_VIOL_MS=8000; // relaxed from 2s/4s
 
 function _apwEstimateGazeZone(pred){
   if(!pred||!pred.landmarks||pred.landmarks.length<6)return'unknown';
@@ -15160,11 +15388,10 @@ function _apwUpdateGazeZone(pred){
   if(_gazeLastZone&&_gazeLastTs){const d=now-_gazeLastTs;_gazeHeatmap[_gazeLastZone]=(_gazeHeatmap[_gazeLastZone]||0)+d;}
   _gazeLastZone=zone;_gazeLastTs=now;
   _gazeZoneHistory.push({zone,ts:now});if(_gazeZoneHistory.length>60)_gazeZoneHistory.shift();
+  // Gaze-off VIOLATIONS removed — tracking retained for teacher heatmap report only
   if(zone!=='center'&&zone!=='unknown'){
     if(_gazeOffStart===0)_gazeOffStart=now;
-    const offMs=now-_gazeOffStart;
-    if(offMs>=APW_GAZE_OFF_WARN_MS&&offMs<APW_GAZE_OFF_VIOL_MS)_apwSetStatus('warn',`👁 Looking ${zone}…`);
-    if(offMs>=APW_GAZE_OFF_VIOL_MS){_gazeOffStart=0;_apwLogViolation('gaze_off',`Gaze off-center (${zone}) ${(APW_GAZE_OFF_VIOL_MS/1000).toFixed(0)}s`);}
+    // No warning or violation fired
   }else{_gazeOffStart=0;}
   return zone;
 }
@@ -15372,32 +15599,160 @@ Object.assign(_violTypeCfg,{
     msg:'Unusually fast typing was detected, suggesting auto-fill or programmatic input. This has been logged.'},
 });
 
-// ── 5. SCREEN RECORDING (violation-triggered only) ───────────────────────────
-let _recorderActive=false;
-async function _captureViolationClip(violType,violNum){
-  if(_recorderActive||typeof storage==='undefined'||!_liveSessionId)return;
-  const highSev=['no_face','multi_face','phone_detected','id_mismatch','auto_fill'];
-  if(!highSev.includes(violType))return;
-  const video=document.getElementById('aiProctorVideo');
-  if(!video||!video.srcObject)return;
-  try{
-    _recorderActive=true;
-    const opts={mimeType:MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm'};
-    const recorder=new MediaRecorder(video.srcObject,opts),chunks=[];
-    recorder.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
-    recorder.start(100);
-    await new Promise(res=>setTimeout(res,8000));
-    recorder.stop();
-    await new Promise(res=>{recorder.onstop=res;});
-    const blob=new Blob(chunks,{type:opts.mimeType}),ts=Date.now();
-    const path=`proctor_recordings/${_liveSessionId}/viol_${violNum}_${ts}.webm`;
-    const ref=storage.ref(path);
-    await ref.put(blob,{contentType:opts.mimeType});
-    const url=await ref.getDownloadURL();
-    if(_liveSessionRef)_liveSessionRef.collection('recordings').add({violationType:violType,violNum,url,path,recordedAt:new Date().toISOString()}).catch(()=>{});
-    console.log('[ProctorRec] Clip saved:',path);
-  }catch(e){console.warn('[ProctorRec]',e.message);}
-  finally{_recorderActive=false;}
+// ── 5. SCREEN RECORDING — captures screen + webcam overlay on violation ──────
+// Records the student's SCREEN (via getDisplayMedia started at quiz begin) so
+// the teacher sees exactly what was on-screen during the violation.
+// Also blocks split-screen / picture-in-picture during quizzes.
+// Clips are 8 seconds, stored in Firebase, expire after 7 days.
+
+let _recorderActive   = false;
+let _screenStream     = null;   // screen capture stream (started when quiz begins)
+let _screenRecorder   = null;
+let _screenChunks     = [];
+let _splitScreenWarnShown = false;
+
+// ── Request screen share when quiz starts (teacher prompts student to share) ──
+async function _startScreenCapture(){
+  if(_screenStream) return; // already capturing
+  try {
+    _screenStream = await navigator.mediaDevices.getDisplayMedia({
+      video: { cursor: 'always', displaySurface: 'monitor' },
+      audio: false,
+      selfBrowserSurface: 'exclude'
+    });
+    // Detect if student shared a window/tab instead of full screen (split-screen indicator)
+    const track = _screenStream.getVideoTracks()[0];
+    if(track){
+      const settings = track.getSettings();
+      if(settings.displaySurface && settings.displaySurface !== 'monitor'){
+        showToast('⚠️ Please share your full screen, not just a window or tab.','warning');
+      }
+      // Listen for stream end — student stopped sharing = violation
+      track.addEventListener('ended', ()=>{
+        if(quizProctorActive){
+          _screenStream = null;
+          _apwLogViolation('screen_share_stopped', 'Student stopped screen sharing during quiz');
+          showToast('🚨 Screen sharing stopped! This has been flagged.','error');
+        }
+      });
+    }
+    console.log('[ScreenRec] Screen capture started');
+    // Start split-screen / PiP monitor
+    _monitorSplitScreen();
+  } catch(e){
+    console.warn('[ScreenRec] Screen capture unavailable:', e.message);
+    // Not a hard error — screen recording is best-effort
+  }
+}
+
+function _stopScreenCapture(){
+  if(_screenStream){
+    _screenStream.getTracks().forEach(t=>t.stop());
+    _screenStream = null;
+  }
+  _splitScreenWarnShown = false;
+}
+
+// ── Split-screen / PiP detection ──────────────────────────────────────────────
+// Detects when the quiz window loses significant size (split-screen indicator)
+let _splitCheckInterval = null;
+const _quizWindowBaseArea = { w: window.screen.width, h: window.screen.height };
+
+function _monitorSplitScreen(){
+  if(_splitCheckInterval) clearInterval(_splitCheckInterval);
+  _splitCheckInterval = setInterval(()=>{
+    if(!quizProctorActive){ clearInterval(_splitCheckInterval); return; }
+    // Check Picture-in-Picture
+    if(document.pictureInPictureElement){
+      showToast('⛔ Picture-in-Picture is not allowed during quizzes.','error');
+      document.exitPictureInPicture?.().catch(()=>{});
+    }
+    // Check if window is significantly smaller than screen (split-screen)
+    const wRatio = window.innerWidth  / window.screen.width;
+    const hRatio = window.innerHeight / window.screen.height;
+    if((wRatio < 0.65 || hRatio < 0.65) && !_splitScreenWarnShown){
+      _splitScreenWarnShown = true;
+      showToast('🚨 Split-screen detected! Use full screen during quizzes.','error');
+      _apwLogViolation('split_screen', `Window at ${Math.round(wRatio*100)}% width / ${Math.round(hRatio*100)}% height`);
+      // Auto-request fullscreen to force single-window
+      document.documentElement.requestFullscreen?.().catch(()=>{});
+    } else if(wRatio >= 0.65 && hRatio >= 0.65){
+      _splitScreenWarnShown = false; // reset if they go back to full
+    }
+  }, 2000);
+}
+
+// ── Capture 8-second violation clip (screen recording + webcam overlay) ──────
+async function _captureViolationClip(violType, violNum){
+  if(_recorderActive) return;
+  const highSev = ['no_face','multi_face','phone_detected','id_mismatch','auto_fill','split_screen','screen_share_stopped'];
+  if(!highSev.includes(violType)) return;
+
+  try {
+    _recorderActive = true;
+    const clips = [];
+
+    // ── A. Record 8s from webcam (always available) ──
+    const video = document.getElementById('aiProctorVideo');
+    if(video && video.srcObject){
+      const opts = { mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm' };
+      const chunks = [];
+      const rec = new MediaRecorder(video.srcObject, opts);
+      rec.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+      rec.start(100);
+      await new Promise(res => setTimeout(res, 8000));
+      rec.stop();
+      await new Promise(res => { rec.onstop = res; });
+      clips.push({ label: 'webcam', blob: new Blob(chunks, { type: opts.mimeType }) });
+    }
+
+    // ── B. Record 8s from screen stream (if available) ──
+    if(_screenStream && _screenStream.active){
+      const opts = { mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm' };
+      const chunks = [];
+      const rec = new MediaRecorder(_screenStream, opts);
+      rec.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+      rec.start(100);
+      await new Promise(res => setTimeout(res, 8000));
+      rec.stop();
+      await new Promise(res => { rec.onstop = res; });
+      clips.push({ label: 'screen', blob: new Blob(chunks, { type: opts.mimeType }) });
+    }
+
+    // ── Upload both clips to Firebase with 7-day expiry metadata ──
+    if(typeof storage !== 'undefined' && _liveSessionId){
+      const ts          = Date.now();
+      const expireAt    = new Date(ts + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+      const uploadedUrls = {};
+
+      for(const clip of clips){
+        const path = `proctor_recordings/${_liveSessionId}/viol_${violNum}_${ts}_${clip.label}.webm`;
+        const ref  = storage.ref(path);
+        await ref.put(clip.blob, {
+          contentType: clip.blob.type,
+          customMetadata: { expireAt, violationType: violType, violNum: String(violNum) }
+        });
+        uploadedUrls[clip.label] = await ref.getDownloadURL();
+      }
+
+      if(_liveSessionRef){
+        _liveSessionRef.collection('recordings').add({
+          violationType: violType,
+          violNum,
+          webcamUrl:  uploadedUrls['webcam']  || null,
+          screenUrl:  uploadedUrls['screen']  || null,
+          expireAt,
+          recordedAt: new Date().toISOString(),
+          studentId:  (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null,
+          studentName:(typeof currentUser !== 'undefined' && currentUser) ? (currentUser.name || currentUser.email) : 'Unknown',
+          quizId:     (typeof activeQuizData !== 'undefined' && activeQuizData) ? activeQuizData.id : null,
+          sessionId:  _liveSessionId
+        }).catch(()=>{});
+      }
+      console.log('[ScreenRec] Clips saved:', Object.keys(uploadedUrls));
+    }
+  } catch(e){ console.warn('[ScreenRec]', e.message); }
+  finally { _recorderActive = false; }
 }
 
 // ── 6. HEARTBEAT ─────────────────────────────────────────────────────────────
@@ -15425,13 +15780,19 @@ startFaceProctor=async function(){
   _mouthTalkFrames=0;_totalFrames=0;_keystrokeTimes=[];_keystrokeIKIs=[];_lastKeyTime=0;
   _keystrokeSuspect=0;_gazeZoneHistory=[];_gazeHeatmap={};_gazeLastZone='center';_gazeLastTs=0;_gazeOffStart=0;
   await _origStartFaceProctorV5();
+  // Start screen capture alongside face proctor
+  _startScreenCapture().catch(e=>console.warn('[ScreenRec] Start failed:',e.message));
 };
 
 const _origStopProctoringV5=stopProctoring;
-stopProctoring=function(){_origStopProctoringV5();_stopRiskScoreUpdater();_stopHeartbeat();};
+stopProctoring=function(){
+  _origStopProctoringV5();_stopRiskScoreUpdater();_stopHeartbeat();
+  _stopScreenCapture();
+  if(_splitCheckInterval){ clearInterval(_splitCheckInterval); _splitCheckInterval=null; }
+};
 
 const _origApwDetectV5b=_apwDetect;
-_apwDetect=async function(){_totalFrames++;if(_apwDetectTalking())_mouthTalkFrames++;await _origApwDetectV5b();};
+_apwDetect=async function(){_totalFrames++;/* talking detection removed */await _origApwDetectV5b();};
 
 const _origGetReportV5=getProctorSessionReport;
 getProctorSessionReport=function(){
@@ -15440,6 +15801,354 @@ getProctorSessionReport=function(){
     keystrokeAvgIKI:_keystrokeIKIs.length>0?Math.round(_keystrokeIKIs.reduce((a,b)=>a+b,0)/_keystrokeIKIs.length):null,
     heartbeatCount:_heartbeatCount,idVerifPassed:_idVerifPassed};
 };
+
+// ══════════════════════════════════════════
+// INTEGRITY FLAGS PAGE — teacher violation clip viewer
+// Loads recordings from Firebase, shows expiry, filters, video previews
+// ══════════════════════════════════════════
+
+const _VIOL_TYPE_LABELS = {
+  no_face:              '👤 No Face',
+  multi_face:           '👥 Multiple Faces',
+  phone_detected:       '📱 Phone Detected',
+  look_away:            '👀 Looking Away',
+  look_down:            '⬇️ Looking Down',
+  split_screen:         '⊞ Split Screen',
+  screen_share_stopped: '🖥️ Screen Share Stopped',
+  auto_fill:            '⌨️ Auto-Fill',
+  id_mismatch:          '🪪 ID Mismatch',
+  voice_detected:       '🎙️ Voice Activity',
+};
+
+const _VIOL_COLORS = {
+  no_face:'var(--red)',multi_face:'var(--red)',phone_detected:'var(--robot)',
+  look_away:'var(--blue)',look_down:'var(--gold-text)',split_screen:'var(--purple)',
+  screen_share_stopped:'var(--red)',auto_fill:'var(--blue)',id_mismatch:'var(--red)',
+};
+
+let _ifAllRecordings = [];
+
+/*
+══════════════════════════════════════════════════════════════════
+  FIRESTORE SECURITY RULES  (copy-paste into Firebase Console)
+  Firebase Console → Firestore Database → Rules
+══════════════════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isTeacher() {
+      return request.auth != null &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+               in ['teacher', 'teacher-admin', 'admin'];
+    }
+    match /users/{userId} {
+      allow create: if true;
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow read, update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+    match /modules/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+    match /activities/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+      allow update: if request.auth != null &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['submissionCount']);
+    }
+    match /submissions/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+    match /sim_activities/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+      allow update: if request.auth != null &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['submissionCount']);
+    }
+    match /sim_submissions/{docId} {
+      allow read: if isTeacher();
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+    match /code_lessons/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+    match /circuit_glossary/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+    match /attendance/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+    match /badges/{docId} {
+      allow read: if request.auth != null;
+      allow create, update: if isTeacher() ||
+                                (request.auth != null &&
+                                 request.resource.data.userId == request.auth.uid);
+      allow delete: if isTeacher();
+    }
+    match /daily_challenges/{docId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null &&
+                                request.resource.data.userId == request.auth.uid;
+    }
+    match /leaderboard/{uid} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher() || (request.auth != null && request.auth.uid == uid);
+    }
+    match /notifications/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+    match /quiz_scores/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+    match /schedule_events/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+    match /rubrics/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+    match /squads/{docId} {
+      allow read: if request.auth != null;
+      allow create, delete: if isTeacher();
+      allow update: if isTeacher() ||
+                       (request.auth != null &&
+                        request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['members', 'memberNames']));
+    }
+    match /squad_activities/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+    match /squad_submissions/{docId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null;
+      allow delete: if isTeacher();
+    }
+    match /chip_shop_items/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+    match /chip_purchases/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if isTeacher();
+    }
+    match /chip_transactions/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+
+    // App Config (e.g. shared Groq API key) — every signed-in user can
+    // read so RoboTutor works for everyone, only teachers/admins can write
+    match /config/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+    }
+
+    // ── Proctor Sessions (top-level) ──────────────────────────────────────
+    // Students write their own session doc; teachers read all sessions.
+    match /proctor_sessions/{sessionId} {
+      allow create, update: if request.auth != null;
+      allow read, delete: if isTeacher();
+
+      // Live violation events sub-collection — student writes, teacher reads
+      match /events/{eventId} {
+        allow create: if request.auth != null;
+        allow read, delete: if isTeacher();
+      }
+
+      // Video clip recordings sub-collection — student writes, teacher reads
+      match /recordings/{recordingId} {
+        allow create: if request.auth != null;
+        allow read, delete: if isTeacher();
+      }
+    }
+
+    // ── collectionGroup rule for Integrity Flags dashboard ────────────────
+    // Required for db.collectionGroup('recordings') cross-session queries.
+    // Without this explicit wildcard rule the query returns PERMISSION_DENIED
+    // even if the per-session sub-collection rule above exists.
+    match /{path=**}/recordings/{recordingId} {
+      allow read: if isTeacher();
+    }
+  }
+}
+
+══════════════════════════════════════════════════════════════════
+  Also create this Firestore Composite Index:
+  Firebase Console → Firestore → Indexes → Composite → Add index
+    Collection group : recordings
+    Fields           : recordedAt  Descending
+    Query scope      : Collection group
+══════════════════════════════════════════════════════════════════
+*/
+async function loadIntegrityFlags(){
+  const grid = document.getElementById('ifClipsGrid');
+  if(!grid) return;
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted-text);">Loading clips…</div>';
+
+  try {
+    if(typeof db === 'undefined') throw new Error('Firestore unavailable');
+
+    // Guard: ensure the current user is authenticated before querying
+    const currentFirebaseUser = typeof firebase !== 'undefined' && firebase.auth().currentUser;
+    if(!currentFirebaseUser){
+      throw new Error('You must be logged in as a teacher to view integrity flags.');
+    }
+
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Load all recording documents across all sessions from last 7 days
+    // Note: no orderBy here to avoid needing a composite index —
+    // we sort in JS below instead.
+    const snap = await db.collectionGroup('recordings')
+      .where('recordedAt', '>=', cutoff)
+      .limit(200)
+      .get();
+
+    _ifAllRecordings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Sort descending by recordedAt in JS (avoids needing a composite index)
+    _ifAllRecordings.sort((a, b) => (b.recordedAt || '').localeCompare(a.recordedAt || ''));
+
+    // Purge expired (shouldn't exist, but guard anyway)
+    const now = new Date().toISOString();
+    _ifAllRecordings = _ifAllRecordings.filter(r => !r.expireAt || r.expireAt > now);
+
+    _ifRenderFlags();
+  } catch(e){
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted-text);">
+      <div style="font-size:1.8rem;margin-bottom:8px;">⚠️</div>
+      <div>Could not load flags: ${escapeHtml(e.message)}</div>
+    </div>`;
+  }
+}
+
+function _ifRenderFlags(){
+  const grid       = document.getElementById('ifClipsGrid');
+  const typeFilter = (document.getElementById('ifTypeFilter')?.value || '').trim();
+  const stuFilter  = (document.getElementById('ifStudentFilter')?.value || '').trim();
+  const quizFilter = (document.getElementById('ifQuizFilter')?.value || '').trim();
+  if(!grid) return;
+
+  let filtered = _ifAllRecordings;
+  if(typeFilter) filtered = filtered.filter(r => r.violationType === typeFilter);
+  if(stuFilter)  filtered = filtered.filter(r => r.studentId === stuFilter || r.studentName === stuFilter);
+  if(quizFilter) filtered = filtered.filter(r => r.quizId === quizFilter);
+
+  // Update stats
+  const uniqueStudents = new Set(filtered.map(r => r.studentId || r.studentName)).size;
+  const typeCounts = {};
+  filtered.forEach(r => { typeCounts[r.violationType] = (typeCounts[r.violationType]||0)+1; });
+  const topType = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
+  const expiring24h = new Date(Date.now() + 24*60*60*1000).toISOString();
+  const expiringCount = filtered.filter(r => r.expireAt && r.expireAt < expiring24h).length;
+
+  const $id = id => document.getElementById(id);
+  if($id('ifStatTotal'))    $id('ifStatTotal').textContent    = filtered.length;
+  if($id('ifStatStudents')) $id('ifStatStudents').textContent = uniqueStudents;
+  if($id('ifStatTopType'))  $id('ifStatTopType').textContent  = topType ? (_VIOL_TYPE_LABELS[topType[0]]||topType[0]) : '—';
+  if($id('ifStatExpiring')) $id('ifStatExpiring').textContent = expiringCount || '0';
+
+  // Populate student filter dropdown
+  const stuSel = document.getElementById('ifStudentFilter');
+  if(stuSel){
+    const students = [...new Map(_ifAllRecordings.map(r => [r.studentId||r.studentName, r.studentName||r.studentId])).entries()];
+    const current = stuSel.value;
+    stuSel.innerHTML = '<option value="">All Students</option>' +
+      students.map(([id,name]) => `<option value="${escapeHtml(id||'')}" ${id===current?'selected':''}>${escapeHtml(name||id||'Unknown')}</option>`).join('');
+  }
+
+  // Update badge count
+  const badge = document.getElementById('integrityFlagsBadge');
+  if(badge){
+    badge.textContent = _ifAllRecordings.length;
+    badge.classList.toggle('hidden', _ifAllRecordings.length === 0);
+  }
+
+  if(filtered.length === 0){
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--muted-text);"><div style="font-size:2.5rem;margin-bottom:12px;">✅</div><div style="font-weight:600;margin-bottom:6px;">No flags match your filters</div></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(r => _ifCardHtml(r)).join('');
+}
+
+function _ifCardHtml(r){
+  const color   = _VIOL_COLORS[r.violationType] || 'var(--slate)';
+  const label   = _VIOL_TYPE_LABELS[r.violationType] || r.violationType;
+  const recDate = r.recordedAt ? new Date(r.recordedAt).toLocaleString() : '—';
+  const expDate = r.expireAt   ? new Date(r.expireAt).toLocaleDateString()  : '—';
+  const expiring = r.expireAt && new Date(r.expireAt) < new Date(Date.now()+24*60*60*1000);
+
+  const webcamVideo = r.webcamUrl ? `
+    <div style="margin-bottom:8px;">
+      <div style="font-size:0.65rem;font-weight:700;color:var(--muted-text);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">📷 Webcam</div>
+      <video src="${escapeHtml(r.webcamUrl)}" controls style="width:100%;border-radius:6px;background:#000;max-height:160px;" preload="none"></video>
+    </div>` : '';
+  const screenVideo = r.screenUrl ? `
+    <div>
+      <div style="font-size:0.65rem;font-weight:700;color:var(--muted-text);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">🖥️ Screen</div>
+      <video src="${escapeHtml(r.screenUrl)}" controls style="width:100%;border-radius:6px;background:#000;max-height:160px;" preload="none"></video>
+    </div>` : '';
+
+  return `<div class="card" style="padding:0;overflow:hidden;border:1.5px solid var(--border);transition:box-shadow .2s;">
+    <div style="padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+      <span style="font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:99px;background:${color};color:#fff;">${escapeHtml(label)}</span>
+      ${expiring ? '<span style="font-size:0.62rem;font-weight:700;color:var(--red);background:var(--red-light);padding:2px 6px;border-radius:99px;">⚠️ Expiring soon</span>' : ''}
+      <span style="margin-left:auto;font-size:0.65rem;color:var(--muted-text);">Viol. #${r.violNum||'?'}</span>
+    </div>
+    <div style="padding:12px 14px;">
+      <div style="font-size:var(--text-sm);font-weight:600;color:var(--ink);margin-bottom:2px;">${escapeHtml(r.studentName||r.studentId||'Unknown Student')}</div>
+      <div style="font-size:var(--text-xs);color:var(--muted-text);margin-bottom:10px;">📅 ${recDate} · Expires ${expDate}</div>
+      ${webcamVideo}${screenVideo}
+      ${!r.webcamUrl && !r.screenUrl ? '<div style="padding:20px;text-align:center;color:var(--muted-text);font-size:var(--text-sm);">No video clips available</div>' : ''}
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        ${r.webcamUrl ? `<a href="${escapeHtml(r.webcamUrl)}" target="_blank" download style="font-size:0.72rem;padding:4px 10px;border-radius:6px;background:var(--surface);border:1.5px solid var(--border);color:var(--ink);text-decoration:none;font-weight:600;">⬇️ Webcam</a>` : ''}
+        ${r.screenUrl ? `<a href="${escapeHtml(r.screenUrl)}" target="_blank" download style="font-size:0.72rem;padding:4px 10px;border-radius:6px;background:var(--surface);border:1.5px solid var(--border);color:var(--ink);text-decoration:none;font-weight:600;">⬇️ Screen</a>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// Auto-load badge count when teacher logs in
+function _refreshIntegrityBadge(){
+  if(typeof db==='undefined') return;
+  const cutoff=new Date(Date.now()-7*24*60*60*1000).toISOString();
+  db.collectionGroup('recordings').where('recordedAt','>=',cutoff).get()
+    .then(snap=>{
+      const badge=document.getElementById('integrityFlagsBadge');
+      if(!badge) return;
+      const count=snap.docs.filter(d=>{ const e=d.data().expireAt; return !e||e>new Date().toISOString(); }).length;
+      badge.textContent=count;
+      badge.classList.toggle('hidden',count===0);
+    }).catch(()=>{});
+}
+
+// Also expose to violation type config for the overlay
+Object.assign(typeof _violTypeCfg !== 'undefined' ? _violTypeCfg : {}, {
+  split_screen:           { icon:'⊞',  title:'Split Screen Detected',      grad:'linear-gradient(135deg,#4a0e6b,#2a0840)', border:'#9b65e0',
+    msg:'Split-screen or windowed mode was detected. You must use your full screen during the quiz.' },
+  screen_share_stopped:   { icon:'🖥️', title:'Screen Sharing Stopped',     grad:'linear-gradient(135deg,#c0392b,#8e1a10)', border:'#e05c00',
+    msg:'You stopped sharing your screen. Screen sharing is required for the entire duration of the quiz.' },
+});
 
 // ══════════════════════════════════════════
 // AI CHAT PAGE — full-page NeuroBot chat
