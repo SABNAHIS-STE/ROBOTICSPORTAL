@@ -1123,7 +1123,6 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
   .page{padding-bottom:calc(var(--mob-nav-h) + 20px);}
   .stat-grid{grid-template-columns:1fr 1fr;}
   #mobSidebarCloseBtn{display:flex!important;}
-  .sidebar-logo{overflow:visible;}
 }
 
 /* ══════ SIDEBAR COLLAPSE (desktop) ══════ */
@@ -2126,15 +2125,15 @@ th.chk-col,td.chk-col{width:34px;}
     <button class="sidebar-collapse-btn" id="collapseBtn" aria-label="Collapse sidebar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
+    <button id="mobSidebarCloseBtn" onclick="closeMobSidebar()" aria-label="Close sidebar" style="display:none;position:absolute;top:8px;right:8px;z-index:10;background:none;border:none;cursor:pointer;color:var(--sidebar-text);padding:8px;min-width:44px;min-height:44px;align-items:center;justify-content:center;border-radius:8px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon">🤖</div>
       <div class="sidebar-logo-text">
         <div class="sidebar-logo-name">SABNAHIS</div>
         <div class="sidebar-logo-sub">Robotics Portal</div>
       </div>
-      <button id="mobSidebarCloseBtn" onclick="closeMobSidebar()" aria-label="Close sidebar" style="display:none;margin-left:auto;background:none;border:none;cursor:pointer;color:var(--sidebar-text);padding:8px;min-width:44px;min-height:44px;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -3900,10 +3899,6 @@ void loop() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
     <span>Lessons</span>
   </button>
-  <button class="mob-nav-item mob-nav-ai-btn" id="mobNavAiStudent" onclick="mobNavOpenAi(this)">
-    <span style="font-size:1.25rem;line-height:1;display:block;">🤖</span>
-    <span>RoboTutor</span>
-  </button>
 </nav>
 
 <nav class="mob-nav hidden" id="mobNavTeacher">
@@ -3935,10 +3930,6 @@ void loop() {
   <button class="mob-nav-item" data-mob-page="simulator" onclick="goTo('simulator')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg>
     <span>Arduino Lab</span>
-  </button>
-  <button class="mob-nav-item mob-nav-ai-btn" id="mobNavAiTeacher" onclick="mobNavOpenAi(this)">
-    <span style="font-size:1.25rem;line-height:1;display:block;">🤖</span>
-    <span>RoboTutor</span>
   </button>
 </nav>
 
