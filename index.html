@@ -566,7 +566,7 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
 .sidebar{
   width:var(--sidebar-w);position:fixed;top:0;left:0;bottom:0;
   background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);
-  display:flex;flex-direction:column;z-index:150;
+  display:flex;flex-direction:column;z-index:161;
   transition:width .22s ease,background .25s,border-color .25s;
   overflow:visible;
   box-shadow:2px 0 24px rgba(201,162,39,0.06);
@@ -1039,7 +1039,7 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
 .mob-header{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:var(--sidebar-bg);height:var(--mob-header-h);align-items:center;padding:0 16px;padding-top:var(--safe-top);gap:10px;border-bottom:1px solid var(--sidebar-border);}
 .mob-header-title{font-family:var(--font-display);font-size:1rem;color:var(--gold-text);flex:1;}
 .mob-menu-btn{background:none;border:none;color:var(--sidebar-text);cursor:pointer;padding:6px;border-radius:6px;display:flex;align-items:center;justify-content:center;min-width:var(--tap-min);min-height:var(--tap-min);}
-.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:149;backdrop-filter:blur(3px);}
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:160;-webkit-tap-highlight-color:transparent;cursor:pointer;}
 .mob-overlay.show{display:block;animation:fIn .2s ease;}
 .mob-nav{
   display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
@@ -1122,8 +1122,8 @@ body{font-family:var(--font-body);background:var(--surface);color:var(--ink);lin
   .topbar{display:none;}
   .page{padding-bottom:calc(var(--mob-nav-h) + 20px);}
   .stat-grid{grid-template-columns:1fr 1fr;}
-  #sidebarMobCloseBtn{display:flex!important;}
-  .sidebar-collapse-btn{display:none!important;}
+  #mobSidebarCloseBtn{display:flex!important;}
+  .sidebar-logo{overflow:visible;}
 }
 
 /* ══════ SIDEBAR COLLAPSE (desktop) ══════ */
@@ -1762,7 +1762,7 @@ th.chk-col,td.chk-col{width:34px;}
 
 /* GPU-accelerate elements that transform/animate to prevent layout thrash */
 .stat-card,.card,.nav-item,.btn,.quiz-card,.badge-item,
-.sidebar,.topbar,.notif-panel,.ai-tutor-panel,
+.topbar,.notif-panel,.ai-tutor-panel,
 #_violPopupOverlay, #_violPopupBox,
 #aiProctorWidget {
   will-change: transform;
@@ -1973,7 +1973,7 @@ th.chk-col,td.chk-col{width:34px;}
   </div>
 </div>
 
-  <!-- Plain Dark Background -->
+  <!-- Plain background -->
   <div style="position:fixed;inset:0;width:100%;height:100%;z-index:0;background:#0b1326;"></div>
 
   <!-- Scanline -->
@@ -2132,8 +2132,8 @@ th.chk-col,td.chk-col{width:34px;}
         <div class="sidebar-logo-name">SABNAHIS</div>
         <div class="sidebar-logo-sub">Robotics Portal</div>
       </div>
-      <button onclick="closeMobSidebar()" aria-label="Close menu" id="sidebarMobCloseBtn" style="display:none;background:none;border:none;cursor:pointer;color:var(--sidebar-text);padding:6px;border-radius:6px;margin-left:auto;min-width:36px;min-height:36px;align-items:center;justify-content:center;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <button id="mobSidebarCloseBtn" onclick="closeMobSidebar()" aria-label="Close sidebar" style="display:none;margin-left:auto;background:none;border:none;cursor:pointer;color:var(--sidebar-text);padding:8px;min-width:44px;min-height:44px;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
 
@@ -2389,7 +2389,7 @@ th.chk-col,td.chk-col{width:34px;}
   </aside>
 
   <!-- ═══ MOBILE OVERLAY ═══ -->
-  <div class="mob-overlay" id="mobOverlay" onclick="closeMobSidebar()"></div>
+  <div class="mob-overlay" id="mobOverlay" onclick="closeMobSidebar()" ontouchend="closeMobSidebar()"></div>
 
   <!-- ═══ MOBILE HEADER ═══ -->
   <header class="mob-header">
