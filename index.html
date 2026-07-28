@@ -5088,38 +5088,341 @@ void loop() {
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-// ══════════════════════════════════
-// FIREBASE — same project/auth used by the
-// SABNAHIS Research Portal, so accounts are shared
-// ══════════════════════════════════
-const firebaseConfig = {
-  apiKey: "AIzaSyCZli2Z6F0ETcPxli_ZJLUg_CuGsK1kBgc",
-  authDomain: "sabnahis-robotics-portal.firebaseapp.com",
-  projectId: "sabnahis-robotics-portal",
-  storageBucket: "sabnahis-robotics-portal.firebasestorage.app",
-  messagingSenderId: "311713247022",
-  appId: "1:311713247022:web:41eae1f2f3f053d5fed4bf",
-  measurementId: "G-BQ1GNG735Y"
-};
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth    = firebase.auth();
-const db      = firebase.firestore();
-const storage = firebase.storage();
-// Note: db.settings() intentionally NOT called here — calling it after any Firestore
-// operation causes INTERNAL ASSERTION FAILED in the compat SDK (10.x).
-// Undefined fields are handled by explicit sanitization before every .add()/.set()/.update().
+// ══════════════════════════════════════════════════════════════════
+// SUPABASE — replaces Firebase. This is a compatibility shim that
+// mimics the Firebase v8 compat API (db.collection().doc().get(), etc.)
+// backed by Postgres/Supabase, so the rest of this file needed almost
+// no changes below. Each Firestore "collection" is a Postgres table
+// with { id text primary key, data jsonb } — see schema.sql.
+// ══════════════════════════════════════════════════════════════════
+const SUPABASE_URL      = "https://YOUR-PROJECT-REF.supabase.co"; // TODO: fill in
+const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";                        // TODO: fill in
+const SUPABASE_STORAGE_BUCKET = "proctor-recordings";
 
-// Keep students signed in across browser restarts (not just page reloads).
-// This is Firebase's default, but some environments / browser settings can
-// fall back to session-only persistence, so we set it explicitly and early —
-// before any sign-in call — to make "stay logged in" reliable.
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{ /* non-fatal: worst case, falls back to default persistence */ });
+const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// numeric fields need to stay real JSON numbers (single `->`) so ordering
+// and >=/<= comparisons work correctly; everything else is compared as text
+const _NUMERIC_FIELDS = new Set(['order','overallScore','score','balance','totalEarned','soldCount','price']);
+
+function _genId(){
+  return (crypto.randomUUID ? crypto.randomUUID() : 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+}
+
+// ── FieldValue sentinels ─────────────────────────────────────────
+class _Increment    { constructor(n){ this.n = n; } }
+class _ArrayUnion   { constructor(items){ this.items = items; } }
+class _ArrayRemove  { constructor(items){ this.items = items; } }
+class _FieldDelete  {}
+const _eq = (a,b) => JSON.stringify(a) === JSON.stringify(b);
+
+function _resolveFieldValues(existing, patch){
+  const out = {};
+  for(const k in patch){
+    const v = patch[k];
+    if(v instanceof _Increment)        out[k] = (Number(existing?.[k]) || 0) + v.n;
+    else if(v instanceof _ArrayUnion){
+      const cur = Array.isArray(existing?.[k]) ? existing[k].slice() : [];
+      v.items.forEach(it => { if(!cur.some(x => _eq(x,it))) cur.push(it); });
+      out[k] = cur;
+    } else if(v instanceof _ArrayRemove){
+      const cur = Array.isArray(existing?.[k]) ? existing[k].slice() : [];
+      out[k] = cur.filter(x => !v.items.some(it => _eq(it,x)));
+    } else if(v instanceof _FieldDelete) out[k] = undefined;
+    else out[k] = v;
+  }
+  return out;
+}
+function _mergeAndClean(existing, patch){
+  const resolved = _resolveFieldValues(existing || {}, patch);
+  const merged = { ...(existing||{}), ...resolved };
+  Object.keys(merged).forEach(k => { if(merged[k] === undefined) delete merged[k]; });
+  return merged;
+}
+
+let _chanSeq = 0;
+
+class _DocRef {
+  constructor(table, id, parentTable, parentId){
+    this.table = table; this.id = id;
+    this._pt = parentTable || null; this._pid = parentId || null;
+  }
+  collection(name){
+    const subTable = _subTable(this.table, name);
+    return new _CollectionRef(subTable, this.table, this.id);
+  }
+  async get(){
+    let q = _sb.from(this.table).select('id,data').eq('id', this.id);
+    const { data, error } = await q.maybeSingle();
+    if(error) throw error;
+    return { id: this.id, exists: !!data, data: () => (data ? data.data : undefined), ref: this };
+  }
+  async set(obj, opts){
+    opts = opts || {};
+    let payload;
+    if(opts.merge){
+      const cur = await this.get();
+      payload = _mergeAndClean(cur.exists ? cur.data() : {}, obj);
+    } else {
+      payload = _mergeAndClean({}, obj);
+    }
+    const row = { id: this.id, data: payload };
+    if(this._pt) row.parent_id = this._pid;
+    const { error } = await _sb.from(this.table).upsert(row);
+    if(error) throw error;
+  }
+  async update(patch){
+    const cur = await this.get();
+    const merged = _mergeAndClean(cur.exists ? cur.data() : {}, patch);
+    const row = { id: this.id, data: merged };
+    if(this._pt) row.parent_id = this._pid;
+    const { error } = await _sb.from(this.table).upsert(row);
+    if(error) throw error;
+  }
+  async delete(){
+    const { error } = await _sb.from(this.table).delete().eq('id', this.id);
+    if(error) throw error;
+  }
+  onSnapshot(cb, errCb){
+    let active = true;
+    const emit = async () => { try { const snap = await this.get(); if(active) cb(snap); } catch(e){ if(errCb) errCb(e); } };
+    emit();
+    const channel = _sb.channel(`doc:${this.table}:${this.id}:${_chanSeq++}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: this.table, filter: `id=eq.${this.id}` }, emit)
+      .subscribe();
+    return () => { active = false; _sb.removeChannel(channel); };
+  }
+}
+
+class _CollectionRef {
+  constructor(table, parentTable, parentId){
+    this.table = table; this._pt = parentTable || null; this._pid = parentId || null;
+    this._filters = []; this._order = null; this._limit = null;
+  }
+  _clone(){
+    const q = new _CollectionRef(this.table, this._pt, this._pid);
+    q._filters = this._filters.slice(); q._order = this._order; q._limit = this._limit;
+    return q;
+  }
+  doc(id){ return new _DocRef(this.table, id || _genId(), this._pt, this._pid); }
+  where(field, op, value){
+    const q = this._clone();
+    q._filters.push({ field, op, value });
+    return q;
+  }
+  orderBy(field, dir){
+    const q = this._clone();
+    q._order = { field, dir: dir || 'asc' };
+    return q;
+  }
+  limit(n){ const q = this._clone(); q._limit = n; return q; }
+  async add(obj){
+    const id = _genId();
+    const payload = _mergeAndClean({}, obj);
+    const row = { id, data: payload };
+    if(this._pt) row.parent_id = this._pid;
+    const { error } = await _sb.from(this.table).insert(row);
+    if(error) throw error;
+    return new _DocRef(this.table, id, this._pt, this._pid);
+  }
+  _buildQuery(){
+    let q = _sb.from(this.table).select('id,data');
+    if(this._pt) q = q.eq('parent_id', this._pid);
+    this._filters.forEach(f => {
+      const numeric = _NUMERIC_FIELDS.has(f.field);
+      const col = numeric ? `data->${f.field}` : `data->>${f.field}`;
+      if(f.op === '==') q = q.eq(col, f.value);
+      else if(f.op === '>=') q = q.gte(col, f.value);
+      else if(f.op === '<=') q = q.lte(col, f.value);
+      else if(f.op === '>')  q = q.gt(col, f.value);
+      else if(f.op === '<')  q = q.lt(col, f.value);
+      else if(f.op === 'array-contains') q = q.contains(`data->${f.field}`, [f.value]);
+    });
+    if(this._order){
+      const numeric = _NUMERIC_FIELDS.has(this._order.field);
+      const col = numeric ? `data->${this._order.field}` : `data->>${this._order.field}`;
+      q = q.order(col, { ascending: this._order.dir !== 'desc' });
+    }
+    if(this._limit) q = q.limit(this._limit);
+    return q;
+  }
+  async get(){
+    const { data, error } = await this._buildQuery();
+    if(error) throw error;
+    const docs = (data || []).map(r => ({ id: r.id, data: () => r.data, exists: true }));
+    return { docs, empty: docs.length === 0, size: docs.length };
+  }
+  onSnapshot(cb, errCb){
+    let active = true;
+    const emit = async () => { try { const snap = await this.get(); if(active) cb(snap); } catch(e){ if(errCb) errCb(e); } };
+    emit();
+    const filter = this._pt ? `parent_id=eq.${this._pid}` : undefined;
+    const channel = _sb.channel(`col:${this.table}:${_chanSeq++}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: this.table, filter }, emit)
+      .subscribe();
+    return () => { active = false; _sb.removeChannel(channel); };
+  }
+}
+
+// subcollection name -> flat backing table
+function _subTable(parentTable, name){
+  if(parentTable === 'proctor_sessions' && name === 'events') return 'proctor_session_events';
+  if(parentTable === 'proctor_sessions' && name === 'recordings') return 'proctor_session_recordings';
+  return `${parentTable}_${name}`; // fallback for anything not seen during migration
+}
+// collectionGroup name -> flat backing table (same tables as subcollections,
+// just queried without a parent_id filter)
+function _groupTable(name){
+  if(name === 'events') return 'proctor_session_events';
+  if(name === 'recordings') return 'proctor_session_recordings';
+  return name;
+}
+
+const db = {
+  collection(name){ return new _CollectionRef(name); },
+  collectionGroup(name){ return new _CollectionRef(_groupTable(name)); },
+  batch(){
+    const ops = [];
+    return {
+      set(ref, data, opts){ ops.push({ t: 'set', ref, data, opts }); return this; },
+      update(ref, data){ ops.push({ t: 'update', ref, data }); return this; },
+      delete(ref){ ops.push({ t: 'delete', ref }); return this; },
+      // NOTE: not atomic across docs (Postgres via PostgREST has no cross-row
+      // batch transaction here) — applied sequentially. Fine for this app's
+      // usage (bulk approve/reject/reset), same as before there was no
+      // rollback-on-partial-failure guarantee relied upon here either.
+      async commit(){
+        for(const op of ops){
+          if(op.t === 'set') await op.ref.set(op.data, op.opts || {});
+          else if(op.t === 'update') await op.ref.update(op.data);
+          else if(op.t === 'delete') await op.ref.delete();
+        }
+      }
+    };
+  },
+  // NOTE: simplified — reads then writes sequentially rather than a real
+  // Postgres transaction. Both call sites in this app touch a single wallet
+  // doc, so the race window is small; flag for a Postgres RPC upgrade if
+  // concurrent teacher actions on the same squad's wallet ever cause issues.
+  async runTransaction(fn){
+    const tx = {
+      async get(ref){ return ref.get(); },
+      set(ref, data, opts){ ref._txSet = { data, opts: opts || {} }; return this; },
+      update(ref, data){ ref._txUpdate = data; return this; }
+    };
+    const result = await fn(tx);
+    return result;
+  }
+};
+// runTransaction's tx.set/tx.update above stash the write on the ref; make
+// them actually commit once the callback returns (mirrors Firestore's
+// "queue writes, commit at the end" transaction behavior closely enough
+// for this app's single-document read-modify-write usage).
+const _origRunTransaction = db.runTransaction.bind(db);
+db.runTransaction = async function(fn){
+  const pending = [];
+  const tx = {
+    async get(ref){ return ref.get(); },
+    set(ref, data, opts){ pending.push(() => ref.set(data, opts || {})); return this; },
+    update(ref, data){ pending.push(() => ref.update(data)); return this; }
+  };
+  const result = await fn(tx);
+  for(const write of pending) await write();
+  return result;
+};
+
+// ── firebase.* global (only the pieces this app touches) ──────────
+window.firebase = {
+  apps: [1],
+  firestore: {
+    FieldValue: {
+      serverTimestamp: () => new Date().toISOString(),
+      increment: (n) => new _Increment(n),
+      arrayUnion: (...items) => new _ArrayUnion(items),
+      arrayRemove: (...items) => new _ArrayRemove(items),
+      delete: () => new _FieldDelete()
+    }
+  },
+  auth: () => ({ currentUser: _authShimCurrentUser() })
+};
+
+// ── auth shim ───────────────────────────────────────────────────
+function _authShimCurrentUser(){
+  return _lastAuthUser ? { uid: _lastAuthUser.id } : null;
+}
+let _lastAuthUser = null;
+let _authStateCb = null;
+
+function _friendlySupabaseAuthError(err){
+  const msg = (err && err.message) || '';
+  if(/already registered/i.test(msg)) return { code: 'auth/email-already-in-use', message: msg };
+  if(/invalid login credentials/i.test(msg)) return { code: 'auth/wrong-password', message: msg };
+  if(/rate limit/i.test(msg)) return { code: 'auth/too-many-requests', message: msg };
+  if(/network/i.test(msg)) return { code: 'auth/network-request-failed', message: msg };
+  return { code: '', message: msg || 'Something went wrong. Please try again.' };
+}
+
+const auth = {
+  async createUserWithEmailAndPassword(email, password){
+    const { data, error } = await _sb.auth.signUp({ email, password });
+    if(error) throw _friendlySupabaseAuthError(error);
+    _lastAuthUser = data.user;
+    return { user: { uid: data.user.id, email: data.user.email } };
+  },
+  async signInWithEmailAndPassword(email, password){
+    const { data, error } = await _sb.auth.signInWithPassword({ email, password });
+    if(error) throw _friendlySupabaseAuthError(error);
+    _lastAuthUser = data.user;
+    return { user: { uid: data.user.id, email: data.user.email } };
+  },
+  async signOut(){
+    await _sb.auth.signOut();
+    _lastAuthUser = null;
+  },
+  async sendPasswordResetEmail(email){
+    const { error } = await _sb.auth.resetPasswordForEmail(email);
+    if(error) throw _friendlySupabaseAuthError(error);
+  },
+  setPersistence(){ return Promise.resolve(); }, // Supabase persists sessions by default
+  Persistence: { LOCAL: 'local' },
+  onAuthStateChanged(cb){
+    _authStateCb = cb;
+    // fire once with whatever session already exists (page reload case)
+    _sb.auth.getSession().then(({ data }) => {
+      _lastAuthUser = data.session ? data.session.user : null;
+      cb(_lastAuthUser ? { uid: _lastAuthUser.id, email: _lastAuthUser.email } : null);
+    });
+    _sb.auth.onAuthStateChange((_event, session) => {
+      _lastAuthUser = session ? session.user : null;
+      cb(_lastAuthUser ? { uid: _lastAuthUser.id, email: _lastAuthUser.email } : null);
+    });
+  }
+};
+
+// ── storage shim (proctoring violation clips) ──────────────────
+const storage = {
+  ref(path){
+    return {
+      path,
+      async put(blob, meta){
+        const { error } = await _sb.storage.from(SUPABASE_STORAGE_BUCKET)
+          .upload(path, blob, { contentType: (meta && meta.contentType) || blob.type, upsert: true });
+        if(error) throw error;
+        return { ref: this };
+      },
+      async getDownloadURL(){
+        const { data, error } = await _sb.storage.from(SUPABASE_STORAGE_BUCKET)
+          .createSignedUrl(path, 60 * 60 * 24 * 7); // 7 days, matches the app's own expiry window
+        if(error) throw error;
+        return data.signedUrl;
+      }
+    };
+  }
+};
+
 
 // ══════════════════════════════════
 // BOOT SEQUENCE — animated loading screen
